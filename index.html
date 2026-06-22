@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Picture Lotto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #fff5e1; --bg-2: #ffe9b3; --ink: #1a1a1a; --muted: #6b6b6b;
+    --line: #e8d9b8; --card: #ffffff;
+    --red: #d12128; --red-deep: #a31419;
+    --gold: #f6b800; --gold-deep: #c98a00;
+    --cream: #fff8e7; --navy: #18305e; --navy-deep: #0f1f3d;
+    --blue: #2967df; --blue-deep: #1c4ba9;
+    --green: #2bb673; --green-deep: #1a7d4d;
+    --teal: #19b3c3; --purple: #7b4fa3; --orange: #ef7b1f;
+    --pink: #e91e63; --pink-deep: #ad1457;
+    --shadow: 0 8px 24px rgba(45, 18, 0, 0.08);
+    --shadow-lg: 0 18px 48px rgba(45, 18, 0, 0.18);
+    --radius: 16px;
+    --font-body: "Sarabun", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-display: "Bungee", "Sarabun", sans-serif;
+    --font-shade: "Bungee Shade", "Bungee", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; font-family: var(--font-body); color: var(--ink);
+    background:
+      radial-gradient(circle at 20% 10%, #ffe2a0 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, #ffd7b8 0%, transparent 40%),
+      repeating-linear-gradient(45deg, #fff5e1 0 30px, #fff0d2 30px 60px);
+    min-height: 100vh;
+  }
+  .app { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  header.topnav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 14px; font-family: var(--font-display); font-size: 24px; color: var(--red); letter-spacing: 1px; text-shadow: 2px 2px 0 var(--gold); }
+  .lotto-ball {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, var(--red) 60%, var(--red-deep));
+    display: grid; place-items: center; color: white;
+    font-family: var(--font-display); font-size: 18px;
+    box-shadow: inset -3px -4px 6px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  .lotto-ball::after { content: ""; position: absolute; top: 5px; left: 8px; width: 12px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); transform: rotate(-25deg); }
+  .nav-cluster { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; background: var(--navy); padding: 6px; border-radius: 999px; box-shadow: var(--shadow); border: 2px solid var(--gold); }
+  .tab { border: 0; background: transparent; padding: 10px 22px; border-radius: 999px; cursor: pointer; font-weight: 700; color: #e9d99e; letter-spacing: 0.5px; font-size: 13px; transition: all 0.15s; text-transform: uppercase; font-family: var(--font-display); }
+  .tab.active { background: var(--gold); color: var(--navy-deep); box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); }
+  .tab:hover:not(.active) { color: var(--gold); }
+  .btn-auth { background: linear-gradient(180deg, var(--blue), var(--blue-deep)); color: white; border: 0; padding: 12px 22px; border-radius: 12px; cursor: pointer; font-weight: 800; font-family: var(--font-display); letter-spacing: 1px; font-size: 13px; box-shadow: var(--shadow); text-transform: uppercase; transition: transform 0.1s; }
+  .btn-auth:hover { transform: translateY(-1px); }
+  .btn-auth.logged-in { background: linear-gradient(180deg, #5a5a5a, #3a3a3a); }
+
+  .stage { position: relative; background: linear-gradient(180deg, #fffdf6 0%, #fff5d8 100%); border-radius: var(--radius); padding: 28px 24px; box-shadow: var(--shadow-lg); min-height: 580px; overflow: hidden; border: 4px solid var(--gold); }
+  .stage::before { content: ""; position: absolute; inset: 8px; pointer-events: none; border: 2px dashed rgba(209, 33, 40, 0.35); border-radius: 10px; z-index: 1; }
+
+  .marquee { position: absolute; top: 16px; left: 30px; right: 130px; height: 22px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 4; }
+  .bulb { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fffbe6 0 35%, var(--gold) 60%, var(--gold-deep)); box-shadow: 0 0 12px rgba(246, 184, 0, 0.7); animation: bulbTwinkle 1.4s ease-in-out infinite; }
+  .bulb:nth-child(2n) { background: radial-gradient(circle at 35% 30%, #ffd6d6 0 35%, var(--red) 60%, var(--red-deep)); box-shadow: 0 0 12px rgba(209, 33, 40, 0.6); animation-delay: 0.2s; }
+  .bulb:nth-child(3n) { animation-delay: 0.5s; }
+  .bulb:nth-child(4n) { animation-delay: 0.8s; }
+  @keyframes bulbTwinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.85); } }
+
+  .stage-bg { position: absolute; inset: 0; pointer-events: none; opacity: 0.65; z-index: 1; }
+  .stage-bg svg { width: 100%; height: 100%; }
+
+  .lotto-sign { position: absolute; top: 24px; right: 24px; z-index: 5; width: 96px; height: 122px; background: linear-gradient(180deg, #f3a430, #d4791d); border-radius: 8px; border: 3px solid #8a4a0c; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); transform: rotate(4deg); }
+  .lotto-sign .sh { background: var(--red); color: var(--cream); font-size: 9px; text-align: center; padding: 3px; font-weight: 800; border-radius: 4px 4px 0 0; letter-spacing: 0.8px; border-bottom: 1px solid #8a4a0c; }
+  .lotto-sign .badge { position: absolute; top: 2px; right: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); color: var(--red-deep); font-size: 10px; font-weight: 800; display: grid; place-items: center; border: 1px solid #8a4a0c; }
+  .lotto-sign .window { background: #1a1a1a; flex: 1; margin: 4px; border-radius: 4px; background-image: repeating-linear-gradient(0deg, transparent 0 8px, rgba(255,255,255,0.12) 8px 9px), repeating-linear-gradient(90deg, transparent 0 8px, rgba(255,255,255,0.12) 8px 9px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
+  .lotto-sign .footer { background: var(--navy); color: var(--gold); font-family: var(--font-display); text-align: center; padding: 4px 0; font-size: 14px; border-radius: 0 0 4px 4px; letter-spacing: 2px; }
+
+  .stage-content { position: relative; z-index: 3; padding: 50px 30px 20px; }
+
+  .lotto-sheet { display: flex; flex-direction: column; gap: 12px; }
+  .msg-box { text-align: center; padding: 14px 22px; border-radius: 12px; font-family: var(--font-body); font-weight: 700; font-size: 18px; line-height: 1.3; box-shadow: var(--shadow); max-width: 88%; word-break: break-word; align-self: center; }
+  .msg-box.red { background: var(--red); color: white; }
+  .msg-box.blue { background: var(--blue); color: white; }
+  .msg-box.yellow { background: linear-gradient(180deg, #ffd633, var(--gold)); color: var(--navy-deep); align-self: stretch; max-width: 100%; border: 2px solid var(--gold-deep); }
+  .msg-box.editable { cursor: text; position: relative; }
+  .msg-box.editable:hover::after { content: "✎ click to edit"; position: absolute; right: 8px; top: -22px; background: var(--navy); color: var(--gold); font-size: 10px; padding: 2px 8px; border-radius: 999px; font-family: var(--font-display); letter-spacing: 0.5px; }
+  .msg-input { width: 100%; max-width: 600px; background: white; border: 2px solid var(--gold-deep); color: var(--ink); padding: 10px 14px; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 16px; text-align: center; }
+  .msg-input:focus { outline: 2px solid var(--red); }
+
+  .rank-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 4px 0; }
+  .rank-card { background: white; border: 5px solid; border-radius: 8px; padding: 4px; position: relative; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform 0.2s; }
+  .rank-card:hover { transform: translateY(-2px); }
+  .rank-row.top-row .rank-card { border-color: var(--gold); }
+  .rank-row.bottom-row .rank-card { border-color: var(--red); }
+  .rank-card .rank-label { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--pink); color: white; padding: 4px 14px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; letter-spacing: 0.8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2; }
+  .rank-card .pic-wrap { aspect-ratio: 3/4; background: var(--line); overflow: hidden; position: relative; border-radius: 4px; }
+  .rank-card .pic-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rank-card .name-overlay { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(255, 255, 255, 0.92); color: var(--blue); font-weight: 800; font-size: 13px; padding: 4px 8px; border-radius: 4px; text-align: center; border: 1px solid var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+  .rank-card .stat-row { display: flex; gap: 4px; padding: 6px 0 2px; justify-content: center; }
+  .stat-pill { background: linear-gradient(180deg, #4dd991, var(--green)); color: white; border: 0; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; cursor: default; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+  .stat-pill .label { opacity: 0.85; font-size: 9px; }
+  .stat-pill .value { font-variant-numeric: tabular-nums; }
+
+  .pool-empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .pool-empty-state .big-ball { width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--gold) 60%, var(--gold-deep)); display: grid; place-items: center; font-family: var(--font-display); font-size: 36px; color: var(--navy-deep); margin: 0 auto 18px; box-shadow: inset -4px -6px 10px rgba(0,0,0,0.2), 0 8px 20px rgba(0,0,0,0.15); }
+  .pool-empty-state h2 { color: var(--navy); margin: 0 0 8px; font-family: var(--font-display); letter-spacing: 1px; }
+
+  .actions { display: flex; justify-content: center; gap: 16px; margin: 24px 0 20px; }
+  .btn { border: 0; padding: 13px 30px; font-weight: 700; font-size: 14px; border-radius: 999px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; display: inline-flex; align-items: center; gap: 10px; box-shadow: var(--shadow); font-family: var(--font-display); letter-spacing: 1.5px; text-transform: uppercase; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: linear-gradient(180deg, var(--red), var(--red-deep)); color: var(--cream); border: 2px solid var(--gold); }
+  .btn-warn { background: var(--cream); color: var(--navy); border: 2px solid var(--navy); }
+  .btn-danger { background: linear-gradient(180deg, var(--red), var(--red-deep)); color: var(--cream); border: 2px solid var(--red-deep); }
+  .btn-blue { background: linear-gradient(180deg, var(--blue), var(--blue-deep)); color: white; border: 2px solid var(--navy-deep); }
+  .btn .icon-ball { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--gold) 60%, var(--gold-deep)); color: var(--navy-deep); display: grid; place-items: center; font-size: 11px; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2); }
+
+  .last-round-banner { background: linear-gradient(135deg, #fff7d6, #ffe9a8); border: 2px dashed #d4a000; border-radius: var(--radius); padding: 14px 20px; text-align: center; margin: 16px auto 0; max-width: 600px; }
+  .last-round-banner .label { font-family: var(--font-display); font-size: 14px; color: var(--red); letter-spacing: 1.5px; }
+  .last-round-banner .time { font-size: 13px; color: var(--navy); margin-top: 4px; }
+
+  .panel { background: white; border-radius: var(--radius); padding: 24px; margin-top: 20px; box-shadow: var(--shadow); border: 2px solid var(--gold); }
+  .panel h3 { margin: 0 0 4px; font-family: var(--font-display); letter-spacing: 1px; color: var(--navy); font-size: 18px; }
+  .panel .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .panel .panel-actions { display: flex; gap: 12px; margin-top: 16px; }
+
+  .uploader { border: 3px dashed var(--gold-deep); border-radius: var(--radius); padding: 28px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--cream); display: block; }
+  .uploader:hover, .uploader.dragover { border-color: var(--red); background: #fff0d6; }
+  .uploader input { display: none; }
+  .uploader .icon { font-size: 30px; margin-bottom: 6px; }
+  .uploader b { color: var(--red); }
+
+  .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+  .pool-empty { color: var(--muted); padding: 32px; text-align: center; }
+  .pool-item { background: linear-gradient(180deg, var(--navy), var(--navy-deep)); color: var(--cream); border-radius: var(--radius); padding: 10px; position: relative; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; border: 2px solid var(--gold); }
+  .pool-item .pic { width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px; background: #2a3f6e; border: 2px solid var(--gold); }
+  .pool-item .pic img { width: 100%; height: 100%; object-fit: cover; }
+  .pool-item .meta { width: 100%; padding: 8px 4px 4px; text-align: center; }
+  .pool-item .name { font-weight: 700; font-size: 13px; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); letter-spacing: 0.5px; }
+  .pool-item .stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--cream); margin-top: 6px; padding: 0 4px; font-variant-numeric: tabular-nums; }
+  .pool-item .x-btn { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: white; border: 2px solid var(--gold); cursor: pointer; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; }
+  .pool-item .x-btn:hover { transform: scale(1.1); }
+  .pool-warning { background: linear-gradient(180deg, #fff7e0, #ffeab8); border: 2px solid var(--gold-deep); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #5a4500; }
+  .pool-warning b { color: var(--red); }
+
+  .settings-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  .settings-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: center; }
+  .settings-row label { font-weight: 700; font-size: 13px; color: var(--navy); }
+  .settings-row input { width: 100%; padding: 10px 12px; border: 2px solid var(--gold-deep); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: white; }
+  .settings-row input:focus { outline: 2px solid var(--red); }
+
+  .history-list { background: white; border-radius: var(--radius); padding: 24px; margin-top: 20px; box-shadow: var(--shadow); border: 2px solid var(--gold); }
+  .history-list h3 { margin: 0 0 4px; font-family: var(--font-display); letter-spacing: 1px; color: var(--navy); font-size: 18px; }
+  .history-list .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .history-empty { color: var(--muted); padding: 28px; text-align: center; }
+  .history-card { border: 2px solid var(--gold); background: var(--cream); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); }
+  .history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+  .history-head .h-title { font-family: var(--font-display); color: var(--red); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+  .history-head .h-title .ball { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--red) 60%, var(--red-deep)); color: white; display: grid; place-items: center; font-family: var(--font-display); font-size: 12px; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2); }
+  .history-head .h-meta { color: var(--muted); font-size: 12px; }
+  .history-head .h-total { background: var(--navy); color: var(--gold); padding: 4px 12px; border-radius: 999px; font-family: var(--font-display); font-size: 12px; letter-spacing: 1px; }
+  .h-prizes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .h-prize { background: white; border: 2px solid; border-radius: 8px; padding: 6px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .h-prize.r1 { border-color: var(--gold); background: linear-gradient(180deg, #fff7d6, #ffeb9c); }
+  .h-prize.r2, .h-prize.r3 { border-color: #999; }
+  .h-prize.r4, .h-prize.r5, .h-prize.r6 { border-color: var(--orange); }
+  .h-prize .h-rank { font-family: var(--font-display); font-size: 10px; color: var(--navy); letter-spacing: 1px; margin-bottom: 4px; }
+  .h-prize .h-thumb { width: 54px; height: 54px; border-radius: 6px; overflow: hidden; background: var(--line); }
+  .h-prize .h-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .h-prize .h-name { font-size: 10px; color: var(--ink); font-weight: 600; margin-top: 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .h-prize .h-pts { background: var(--navy); color: var(--gold); padding: 1px 6px; border-radius: 999px; font-size: 9px; font-weight: 700; margin-top: 3px; font-family: var(--font-display); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(20, 12, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius); padding: 24px; max-width: 460px; width: 100%; box-shadow: var(--shadow-lg); border: 3px solid var(--gold); }
+  .modal h3 { margin: 0 0 8px; font-family: var(--font-display); color: var(--red); letter-spacing: 1px; }
+  .modal p { color: var(--ink); margin: 0 0 18px; line-height: 1.5; font-size: 14px; }
+  .modal .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+  .modal .preview { margin: 0 0 16px; text-align: center; }
+  .modal .preview img { max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: var(--shadow); border: 3px solid var(--gold); }
+  .modal label { display: block; font-weight: 700; font-size: 12px; margin: 6px 0 6px; color: var(--navy); letter-spacing: 1px; text-transform: uppercase; }
+  .modal input[type=text], .modal input[type=password], .modal input[type=email] { width: 100%; padding: 10px 12px; border: 2px solid var(--gold-deep); border-radius: 8px; font-size: 14px; margin-bottom: 14px; background: white; font-family: var(--font-body); }
+  .modal input:focus { outline: 2px solid var(--red); }
+  .modal .error { color: var(--red); font-size: 13px; margin: -8px 0 12px; font-weight: 600; }
+
+  .drawing-overlay { position: absolute; inset: 0; background: rgba(255, 248, 231, 0.95); z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .ball-jar { position: relative; width: 240px; height: 240px; display: grid; place-items: center; }
+  .ball-jar::before { content: ""; position: absolute; inset: 0; border: 6px solid var(--navy); border-radius: 50%; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+  .spinning-ball { position: absolute; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); color: white; font-size: 14px; font-weight: 800; box-shadow: inset -2px -3px 6px rgba(0,0,0,0.25), 0 3px 6px rgba(0,0,0,0.2); animation: orbit 1.6s linear infinite; }
+  .spinning-ball.b1 { background: radial-gradient(circle at 35% 30%, #fff, var(--red) 70%, var(--red-deep)); animation-delay: 0s; }
+  .spinning-ball.b2 { background: radial-gradient(circle at 35% 30%, #fff, var(--blue) 70%, var(--navy)); animation-delay: -0.25s; }
+  .spinning-ball.b3 { background: radial-gradient(circle at 35% 30%, #fff, var(--green) 70%, var(--green-deep)); animation-delay: -0.5s; }
+  .spinning-ball.b4 { background: radial-gradient(circle at 35% 30%, #fff, var(--gold) 70%, var(--gold-deep)); color: var(--navy-deep); animation-delay: -0.75s; }
+  .spinning-ball.b5 { background: radial-gradient(circle at 35% 30%, #fff, var(--purple) 70%, #4a276b); animation-delay: -1.0s; }
+  .spinning-ball.b6 { background: radial-gradient(circle at 35% 30%, #fff, var(--orange) 70%, #b04500); animation-delay: -1.25s; }
+  @keyframes orbit { from { transform: rotate(0deg) translateX(85px) rotate(0deg); } to { transform: rotate(360deg) translateX(85px) rotate(-360deg); } }
+  .drawing-label { font-family: var(--font-display); color: var(--red); font-size: 22px; letter-spacing: 3px; }
+  .drawing-label::after { content: "..."; animation: dots 1.2s infinite; }
+  @keyframes dots { 0% { content: "."; } 33% { content: ".."; } 66% { content: "..."; } }
+
+  .confetti-host { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 8; }
+  .confetti { position: absolute; top: -20px; width: 10px; height: 14px; animation: fall linear forwards; opacity: 0.95; }
+  @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(700px) rotate(720deg); opacity: 0; } }
+
+  .toast-stack { position: fixed; top: 16px; right: 16px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--navy); color: var(--gold); padding: 12px 18px; border-radius: 8px; box-shadow: var(--shadow-lg); animation: slidein 0.25s ease-out; max-width: 320px; font-size: 14px; font-weight: 600; border: 2px solid var(--gold); }
+  .toast.success { background: linear-gradient(180deg, var(--green), var(--green-deep)); color: white; border-color: #0e5532; }
+  .toast.error { background: linear-gradient(180deg, var(--red), var(--red-deep)); color: white; border-color: #6e0c10; }
+  @keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .hidden { display: none !important; }
+  .admin-only.locked { display: none !important; }
+
+  .status-bar { position: fixed; bottom: 16px; left: 16px; background: var(--navy); color: var(--gold); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; box-shadow: var(--shadow); border: 2px solid var(--gold); z-index: 50; }
+  .status-bar.error { background: var(--red); color: white; border-color: var(--red-deep); }
+  .status-bar.success { background: linear-gradient(180deg, var(--green), var(--green-deep)); color: white; border-color: var(--green-deep); }
+  .status-bar .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-right: 6px; vertical-align: middle; }
+  .status-bar.success .dot { background: white; }
+  .status-bar.error .dot { background: white; animation: blink 1s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  @media (max-width: 920px) {
+    .rank-row { grid-template-columns: repeat(2, 1fr); }
+    .h-prizes { grid-template-columns: repeat(3, 1fr); }
+    .stage-content { padding: 50px 14px 14px; }
+    .msg-box { font-size: 14px; padding: 10px 14px; max-width: 100%; }
+  }
+  @media (max-width: 520px) {
+    .rank-row { grid-template-columns: 1fr; }
+    .brand { font-size: 18px; }
+    .tab { padding: 8px 14px; font-size: 11px; }
+    .btn-auth { padding: 9px 14px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topnav">
+    <div class="brand">
+      <div class="lotto-ball">L</div>
+      <div>PICTURE&nbsp;LOTTO</div>
+    </div>
+    <div class="nav-cluster">
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-view="home">HOME</button>
+        <button class="tab admin-only locked" data-view="backoffice">BACKOFFICE</button>
+        <button class="tab" data-view="history">HISTORY</button>
+      </nav>
+      <button class="btn-auth" id="btn-auth">LOG-IN</button>
+    </div>
+  </header>
+
+  <section id="view-home">
+    <div class="stage">
+      <div class="marquee" id="marquee" aria-hidden="true"></div>
+      <div class="lotto-sign" aria-hidden="true">
+        <div class="badge">7</div>
+        <div class="sh">AUTHORIZED AGENT</div>
+        <div class="window"></div>
+        <div class="footer">LOTTO</div>
+      </div>
+      <div class="stage-bg" aria-hidden="true">
+        <svg viewBox="0 0 800 600" preserveAspectRatio="none">
+          <circle cx="40" cy="80" r="22" fill="#2967df"/>
+          <rect x="90" y="40" width="36" height="36" fill="#f6b800"/>
+          <polygon points="20,160 50,200 -10,200" fill="#d12128"/>
+          <circle cx="100" cy="130" r="12" fill="#19b3c3"/>
+          <rect x="50" y="520" width="44" height="44" fill="#2967df"/>
+          <polygon points="20,580 60,560 60,600" fill="#d12128"/>
+          <circle cx="130" cy="560" r="18" fill="#f6b800"/>
+          <rect x="720" y="380" width="30" height="30" fill="#d12128"/>
+          <circle cx="770" cy="450" r="18" fill="#f6b800"/>
+          <polygon points="700,520 740,500 740,540" fill="#2967df"/>
+          <rect x="750" y="540" width="34" height="34" fill="#19b3c3"/>
+        </svg>
+      </div>
+      <div class="confetti-host" id="confetti-host" aria-hidden="true"></div>
+      <div class="stage-content">
+        <div id="home-host"></div>
+      </div>
+    </div>
+    <div id="last-round-host"></div>
+    <div class="actions admin-only locked">
+      <button class="btn btn-primary" id="btn-play"><span class="icon-ball">★</span> Play</button>
+      <button class="btn btn-warn" id="btn-reset"><span>↺</span> Reset</button>
+    </div>
+  </section>
+
+  <section id="view-backoffice" class="hidden">
+    <div class="panel">
+      <h3>Upload Picture</h3>
+      <div class="sub">Add a new image to the pool. Large images are automatically downscaled. Probabilities are rebalanced when you add or remove.</div>
+      <label class="uploader" id="uploader">
+        <input type="file" id="file-input" accept="image/*" multiple />
+        <div class="icon">📤</div>
+        <div><b>Click to upload</b> or drag &amp; drop image(s) here</div>
+        <div class="sub" style="margin-top:8px;">PNG, JPG, WebP. Confirmation required.</div>
+      </label>
+    </div>
+    <div class="panel">
+      <h3>Current Pictures in the Pool</h3>
+      <div class="sub">Each tile shows next-round probability and lifetime wins.</div>
+      <div id="pool-warning-host"></div>
+      <div id="pool-host"></div>
+    </div>
+    <div class="panel">
+      <h3>Home Page Messages</h3>
+      <div class="sub">These five editable boxes appear on the public Home Page. They can also be edited inline by clicking them while logged in.</div>
+      <div class="settings-grid" id="settings-grid"></div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="btn-save-settings">Save Messages</button>
+        <button class="btn btn-warn" id="btn-reset-messages">Reset to defaults</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-history" class="hidden">
+    <div class="history-list">
+      <h3>Round History</h3>
+      <div class="sub">The last 10 rounds, newest first. Updates live when admin plays a round.</div>
+      <div id="history-host"></div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+        <button class="btn btn-warn admin-only locked" id="btn-clear-history" style="font-size:12px; padding:8px 16px;">Clear History</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast-stack" id="toasts"></div>
+<div class="status-bar" id="status-bar"><span class="dot"></span> Connecting…</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+ * Picture Lotto V2 — Supabase-backed
+ *
+ * Architecture:
+ *   • Supabase Postgres holds three tables: pictures, rounds, settings.
+ *   • Images live in a Supabase Storage bucket "pictures".
+ *   • Supabase Auth handles admin login (email + password).
+ *   • Realtime postgres_changes broadcasts state to all clients.
+ *
+ * The probability engine is identical to V1 (244-test verified). Only the
+ * storage and auth layers changed.
+ * ========================================================================= */
+
+/* ============================================================
+ * CONFIG — set these to your Supabase project values (from
+ * Project Settings → API in the Supabase dashboard).
+ * ============================================================ */
+const SUPABASE_URL = "https://yicokbmhsgvksecdndat.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpY29rYm1oc2d2a3NlY2RuZGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDk0ODMsImV4cCI6MjA5NzY4NTQ4M30.wZXDYTqVSLddNVB7Xjxo8C-uc1dVvpZMbx2wqZJAg-E";
+
+const FLOOR = 0.0005;
+const DEDUCTION_RATE = 0.10;
+const PRIZE_TABLE = [600, 300, 300, 100, 100, 100];
+const ROUND_SIZE = 6;
+const MIN_POOL = 7;
+const HISTORY_LIMIT = 10;
+const STORAGE_BUCKET = "pictures";
+
+const DEFAULT_SETTINGS = {
+  msg_date: "เพื่องวด วันที่ 19 เดือน มิถุนายน ปี 2026",
+  msg_top_1: "ขอให้รวยพ้อยต์กันทั่วหน้า",
+  msg_top_2: "หน้าตาโพยยังเหมือนเดิม แต่ใจเตงไม่เหมือนเดิมหรือเปล่า",
+  msg_middle: "เรายังเหมือนเดิมหรือเป็นเตงที่เปลี่ยนไป",
+  msg_disclaimer: "Disclaimer: สุดยอดโพยนี้เป็นเพียงคำทำนายเท่านั้นนะจ่ะ ระบบมันคำนวณมาให้งะ",
+};
+const MSG_DEFS = [
+  { key: "msg_date", label: "Date header", variant: "red" },
+  { key: "msg_top_1", label: "Top message 1", variant: "red" },
+  { key: "msg_top_2", label: "Top message 2", variant: "blue" },
+  { key: "msg_middle", label: "Middle message", variant: "blue" },
+  { key: "msg_disclaimer", label: "Disclaimer", variant: "yellow" },
+];
+
+let sb;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.error("Failed to init Supabase client:", e);
+}
+
+/* ---------- In-memory state ---------- */
+const State = {
+  pictures: [],
+  rounds: [],
+  settings: { ...DEFAULT_SETTINGS },
+  isAdmin: false,
+  loading: true,
+  error: null,
+};
+
+/* ---------- Helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+function round12(x) { return Math.round(x * 1e12) / 1e12; }
+function fmtPct(p) { const pct = p * 100; return pct < 0.1 ? pct.toFixed(3) + "%" : pct.toFixed(2) + "%"; }
+function fmtDate(ts) { const d = new Date(ts); return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function toast(message, kind = "default") {
+  const stack = $("#toasts");
+  const t = document.createElement("div");
+  t.className = "toast " + (kind === "success" ? "success" : kind === "error" ? "error" : "");
+  t.textContent = message;
+  stack.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity 0.3s"; }, 2800);
+  setTimeout(() => { t.remove(); }, 3300);
+}
+
+function modal({ title, body, html, confirmText = "Confirm", cancelText = "Cancel", danger = false, onConfirm, hideCancel = false }) {
+  return new Promise(resolve => {
+    const overlay = $("#modal-overlay"); const m = $("#modal");
+    m.innerHTML = `
+      <h3>${title}</h3>
+      ${html ? html : (body ? `<p>${body}</p>` : "")}
+      <div class="modal-actions">
+        ${hideCancel ? "" : `<button class="btn btn-warn" id="m-cancel">${cancelText}</button>`}
+        <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="m-confirm">${confirmText}</button>
+      </div>`;
+    overlay.classList.add("show");
+    const cleanup = () => { overlay.classList.remove("show"); m.innerHTML = ""; };
+    $("#m-confirm").onclick = async () => {
+      try { const r = onConfirm ? await onConfirm(m) : true; if (r !== false) { cleanup(); resolve(true); } }
+      catch (e) { console.error(e); }
+    };
+    if (!hideCancel) $("#m-cancel").onclick = () => { cleanup(); resolve(false); };
+  });
+}
+
+/* ---------- Probability engine (byte-identical to V1, 244-test verified) ---------- */
+function normalize(pics) {
+  const total = pics.reduce((s, p) => s + p.probability, 0);
+  if (total <= 0) { const eq = 1 / pics.length; pics.forEach(p => p.probability = eq); return; }
+  pics.forEach(p => p.probability = round12(p.probability / total));
+  const sum = pics.reduce((s, p) => s + p.probability, 0);
+  const drift = 1 - sum;
+  if (Math.abs(drift) > 0) {
+    const target = pics.reduce((m, p) => (p.probability > m.probability ? p : m), pics[0]);
+    target.probability = round12(target.probability + drift);
+  }
+}
+function equalize(pics) { if (!pics.length) return; const eq = 1 / pics.length; pics.forEach(p => p.probability = eq); }
+function drawRound(pics) {
+  if (pics.length < ROUND_SIZE) throw new Error("Need at least 6 pictures to draw");
+  const pool = pics.map(p => ({ pic: p, w: p.probability }));
+  const result = [];
+  for (let k = 0; k < ROUND_SIZE; k++) {
+    const total = pool.reduce((s, x) => s + x.w, 0);
+    if (total <= 0) { const idx = Math.floor(Math.random() * pool.length); result.push(pool[idx].pic); pool.splice(idx, 1); continue; }
+    let r = Math.random() * total; let chosen = -1;
+    for (let i = 0; i < pool.length; i++) { r -= pool[i].w; if (r <= 0) { chosen = i; break; } }
+    if (chosen === -1) chosen = pool.length - 1;
+    result.push(pool[chosen].pic); pool.splice(chosen, 1);
+  }
+  return result;
+}
+function applyRoundUpdates(pics, winners) {
+  const winnerIds = new Set(winners.map(w => w.id));
+  let totalDeducted = 0;
+  for (const w of winners) {
+    const room = Math.max(0, w.probability - FLOOR);
+    const desired = DEDUCTION_RATE * w.probability;
+    const actual = Math.min(desired, room);
+    w.probability = round12(w.probability - actual);
+    totalDeducted = round12(totalDeducted + actual);
+  }
+  for (const w of winners) w.wins += 1;
+  const nonWinners = pics.filter(p => !winnerIds.has(p.id));
+  if (totalDeducted > 0 && nonWinners.length > 0) {
+    let recipients = nonWinners.filter(p => p.wins === 0);
+    if (recipients.length === 0) {
+      const minWins = Math.min(...nonWinners.map(p => p.wins));
+      recipients = nonWinners.filter(p => p.wins === minWins);
+    }
+    const share = totalDeducted / recipients.length;
+    recipients.forEach(p => p.probability = round12(p.probability + share));
+  }
+  normalize(pics);
+}
+function addPictureProb(pics, newPic) {
+  if (pics.length === 0) { newPic.probability = 1; newPic.wins = 0; return; }
+  normalize(pics);
+  const N = pics.length + 1;
+  const newProb = 1 / N;
+  pics.forEach(p => p.probability = round12(p.probability * (1 - newProb)));
+  newPic.probability = round12(newProb); newPic.wins = 0;
+}
+function removePictureProb(pics) { if (pics.length === 0) return; normalize(pics); }
+function resetAllProb(pics) { pics.forEach(p => { p.wins = 0; }); equalize(pics); }
+
+/* ---------- Supabase Store ---------- */
+const Store = {
+  async listPictures() {
+    const { data, error } = await sb.from("pictures").select("*").order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id: r.id,
+      name: r.name,
+      imageUrl: r.image_url,
+      storagePath: r.storage_path,
+      probability: Number(r.probability) || 0,
+      wins: Number(r.wins) || 0,
+    }));
+  },
+  async listRounds() {
+    const { data, error } = await sb.from("rounds").select("*").order("created_at", { ascending: false }).limit(HISTORY_LIMIT + 5);
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id: r.id,
+      timestamp: r.created_at,
+      winners: r.winners || [],
+      total_points: r.total_points || 0,
+    }));
+  },
+  async listSettings() {
+    const { data, error } = await sb.from("settings").select("*");
+    if (error) throw error;
+    const out = { ...DEFAULT_SETTINGS };
+    for (const r of (data || [])) {
+      if (Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS, r.key)) out[r.key] = r.value;
+    }
+    return out;
+  },
+  async upsertSetting(key, value) {
+    // Upsert on unique key
+    const { error } = await sb.from("settings").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) throw error;
+  },
+  async createPicture({ name, imageBlob, probability, wins }) {
+    // 1) Upload to Storage
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`;
+    const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, imageBlob, { cacheControl: "3600", upsert: false, contentType: "image/jpeg" });
+    if (upErr) throw upErr;
+    // 2) Get public URL
+    const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const imageUrl = urlData.publicUrl;
+    // 3) Insert row
+    const { data, error } = await sb.from("pictures").insert({
+      name, image_url: imageUrl, storage_path: path,
+      probability, wins,
+    }).select().single();
+    if (error) {
+      // Roll back the storage upload
+      try { await sb.storage.from(STORAGE_BUCKET).remove([path]); } catch (e) {}
+      throw error;
+    }
+    return data;
+  },
+  async updatePicture(id, fields) {
+    const { error } = await sb.from("pictures").update(fields).eq("id", id);
+    if (error) throw error;
+  },
+  async deletePicture(id, storagePath) {
+    const { error } = await sb.from("pictures").delete().eq("id", id);
+    if (error) throw error;
+    if (storagePath) {
+      try { await sb.storage.from(STORAGE_BUCKET).remove([storagePath]); } catch (e) { console.warn("Storage cleanup failed:", e); }
+    }
+  },
+  async createRound(winners, totalPoints) {
+    const { data, error } = await sb.from("rounds").insert({ winners, total_points: totalPoints }).select().single();
+    if (error) throw error;
+    return data;
+  },
+  async deleteRound(id) {
+    const { error } = await sb.from("rounds").delete().eq("id", id);
+    if (error) throw error;
+  },
+  async deleteAllRounds() {
+    const { error } = await sb.from("rounds").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (error) throw error;
+  },
+};
+
+/* ---------- Realtime ---------- */
+let rtChannel;
+async function subscribeAll() {
+  if (rtChannel) {
+    try { await sb.removeChannel(rtChannel); } catch (e) {}
+    rtChannel = null;
+  }
+  rtChannel = sb
+    .channel("lotto-state")
+    .on("postgres_changes", { event: "*", schema: "public", table: "pictures" }, async () => {
+      try { State.pictures = await Store.listPictures(); render(); } catch (e) { console.error(e); }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "rounds" }, async () => {
+      try { State.rounds = await Store.listRounds(); render(); } catch (e) { console.error(e); }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, async () => {
+      try { State.settings = await Store.listSettings(); render(); } catch (e) { console.error(e); }
+    })
+    .subscribe();
+}
+
+/* ---------- Image downscaling ---------- */
+function downscaleImage(file, maxDim = 800) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        c.toBlob(blob => resolve({ blob, dataUrl: c.toDataURL("image/jpeg", 0.85) }), "image/jpeg", 0.85);
+      };
+      img.onerror = reject; img.src = fr.result;
+    };
+    fr.onerror = reject; fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- Decorations ---------- */
+function paintMarquee() {
+  const m = $("#marquee");
+  if (m.children.length > 0) return;
+  for (let i = 0; i < 22; i++) { const b = document.createElement("div"); b.className = "bulb"; m.appendChild(b); }
+}
+function launchConfetti() {
+  const host = $("#confetti-host"); host.innerHTML = "";
+  const colors = ["#d12128", "#f6b800", "#2967df", "#2bb673", "#7b4fa3", "#ef7b1f", "#19b3c3"];
+  const rect = host.getBoundingClientRect();
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = (Math.random() * rect.width) + "px";
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = (1.6 + Math.random() * 1.4) + "s";
+    c.style.animationDelay = (Math.random() * 0.4) + "s";
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.width = "8px"; c.style.height = "8px"; }
+    host.appendChild(c);
+  }
+  setTimeout(() => { host.innerHTML = ""; }, 3500);
+}
+function showDrawingOverlay() {
+  const stage = $("#view-home .stage");
+  const ov = document.createElement("div");
+  ov.className = "drawing-overlay"; ov.id = "drawing-overlay";
+  ov.innerHTML = `
+    <div class="ball-jar">
+      <div class="spinning-ball b1">7</div>
+      <div class="spinning-ball b2">23</div>
+      <div class="spinning-ball b3">42</div>
+      <div class="spinning-ball b4">9</div>
+      <div class="spinning-ball b5">14</div>
+      <div class="spinning-ball b6">31</div>
+    </div>
+    <div class="drawing-label">Drawing</div>`;
+  stage.appendChild(ov);
+}
+function hideDrawingOverlay() { const ov = $("#drawing-overlay"); if (ov) ov.remove(); }
+
+/* ---------- Auth ---------- */
+function updateAuthUI() {
+  document.body.classList.toggle("is-admin", State.isAdmin);
+  $$(".admin-only").forEach(el => el.classList.toggle("locked", !State.isAdmin));
+  const btn = $("#btn-auth");
+  if (State.isAdmin) { btn.textContent = "Log Out"; btn.classList.add("logged-in"); }
+  else { btn.textContent = "Log-In"; btn.classList.remove("logged-in"); }
+}
+
+/** Convert "Admin" → "admin@bluepi.local" so users can type the short name from the original spec. */
+function normalizeLoginEmail(s) {
+  s = (s || "").trim();
+  if (!s) return s;
+  if (s.includes("@")) return s.toLowerCase();
+  return s.toLowerCase() + "@bluepi.local";
+}
+
+async function openLoginModal() {
+  await modal({
+    title: "Admin Log In",
+    html: `
+      <p>Enter the admin credentials to access BackOffice features.</p>
+      <label for="m-user">Email or username</label>
+      <input type="text" id="m-user" placeholder="admin@bluepi.local or Admin" autocomplete="username" />
+      <label for="m-pass">Password</label>
+      <input type="password" id="m-pass" autocomplete="current-password" />
+      <div class="error" id="m-err"></div>`,
+    confirmText: "Log In",
+    onConfirm: async (m) => {
+      const userRaw = m.querySelector("#m-user").value.trim();
+      const pass = m.querySelector("#m-pass").value;
+      const err = m.querySelector("#m-err");
+      err.textContent = "";
+      if (!userRaw || !pass) { err.textContent = "Both fields are required."; return false; }
+      const email = normalizeLoginEmail(userRaw);
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        State.isAdmin = true;
+        updateAuthUI();
+        toast("Logged in.", "success");
+        render();
+      } catch (e) {
+        err.textContent = "Login failed: " + (e.message || "invalid credentials");
+        return false;
+      }
+    },
+  });
+}
+
+async function logout() {
+  const ok = await modal({
+    title: "Log out?",
+    body: "You'll lose access to BackOffice features until you log in again.",
+    confirmText: "Log Out",
+    danger: true,
+  });
+  if (!ok) return;
+  await sb.auth.signOut();
+  State.isAdmin = false;
+  updateAuthUI();
+  if (currentView === "backoffice") setView("home");
+  render();
+  toast("Logged out.", "success");
+}
+
+/* ---------- Views ---------- */
+let currentView = "home";
+function setView(v) {
+  if (v === "backoffice" && !State.isAdmin) { openLoginModal(); return; }
+  currentView = v;
+  $$("#tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.view === v));
+  $("#view-home").classList.toggle("hidden", v !== "home");
+  $("#view-backoffice").classList.toggle("hidden", v !== "backoffice");
+  $("#view-history").classList.toggle("hidden", v !== "history");
+  render();
+}
+
+function render() {
+  paintMarquee();
+  if (currentView === "home") renderHome();
+  else if (currentView === "backoffice") renderBackOffice();
+  else renderHistory();
+}
+
+function renderHome() {
+  const host = $("#home-host"); host.innerHTML = "";
+  if (State.pictures.length === 0) {
+    host.innerHTML = `
+      <div class="pool-empty-state">
+        <div class="big-ball">?</div>
+        <h2>The pool is empty</h2>
+        <p>${State.isAdmin
+          ? "Head to <b>BackOffice</b> to upload pictures."
+          : "Waiting for the admin to set up the picture pool."}</p>
+      </div>`;
+    renderLastRoundBanner();
+    return;
+  }
+
+  const sorted = [...State.pictures].sort((a, b) => b.probability - a.probability);
+  const top10 = sorted.slice(0, 10);
+  const top5 = top10.slice(0, 5);
+  const bottom5 = top10.slice(5, 10);
+
+  const sheet = document.createElement("div");
+  sheet.className = "lotto-sheet";
+  sheet.appendChild(buildMsg("msg_date"));
+  sheet.appendChild(buildMsg("msg_top_1"));
+  sheet.appendChild(buildMsg("msg_top_2"));
+
+  const topRow = document.createElement("div"); topRow.className = "rank-row top-row";
+  for (let i = 0; i < 5; i++) topRow.appendChild(buildRankCard(top5[i] || null, i + 1));
+  sheet.appendChild(topRow);
+
+  sheet.appendChild(buildMsg("msg_middle"));
+
+  const botRow = document.createElement("div"); botRow.className = "rank-row bottom-row";
+  for (let i = 0; i < 5; i++) botRow.appendChild(buildRankCard(bottom5[i] || null, i + 6));
+  sheet.appendChild(botRow);
+
+  sheet.appendChild(buildMsg("msg_disclaimer"));
+  host.appendChild(sheet);
+  renderLastRoundBanner();
+}
+
+function buildMsg(key) {
+  const def = MSG_DEFS.find(m => m.key === key);
+  const value = State.settings[key] || DEFAULT_SETTINGS[key] || "";
+  const el = document.createElement("div");
+  el.className = `msg-box ${def.variant}`;
+  el.textContent = value;
+  el.dataset.key = key;
+  if (State.isAdmin) {
+    el.classList.add("editable");
+    el.title = "Click to edit";
+    el.addEventListener("click", () => editMessageInline(el, key));
+  }
+  return el;
+}
+
+async function editMessageInline(el, key) {
+  if (el.querySelector("input")) return;
+  const current = State.settings[key] || "";
+  const input = document.createElement("input");
+  input.className = "msg-input";
+  input.value = current; input.maxLength = 200;
+  el.textContent = ""; el.appendChild(input);
+  input.focus(); input.select();
+  let saved = false;
+  const save = async () => {
+    if (saved) return; saved = true;
+    const v = input.value.trim();
+    if (v === current) { el.textContent = current; return; }
+    try {
+      await Store.upsertSetting(key, v);
+      State.settings[key] = v;
+      el.textContent = v;
+      toast("Message saved.", "success");
+    } catch (e) {
+      console.error(e); toast("Failed to save: " + e.message, "error");
+      el.textContent = current;
+    }
+  };
+  input.addEventListener("blur", save);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); input.blur(); }
+    else if (e.key === "Escape") { saved = true; el.textContent = current; }
+  });
+}
+
+function buildRankCard(pic, rank) {
+  const card = document.createElement("div");
+  card.className = "rank-card";
+  const label = document.createElement("div");
+  label.className = "rank-label"; label.textContent = `Rank ${rank}`;
+  card.appendChild(label);
+  const wrap = document.createElement("div"); wrap.className = "pic-wrap";
+  if (pic) {
+    if (pic.imageUrl) {
+      const img = document.createElement("img"); img.src = pic.imageUrl; img.alt = pic.name || "";
+      wrap.appendChild(img);
+    }
+    const overlay = document.createElement("div"); overlay.className = "name-overlay";
+    overlay.textContent = pic.name || "(unnamed)";
+    wrap.appendChild(overlay);
+  } else {
+    wrap.style.display = "grid"; wrap.style.placeItems = "center";
+    wrap.style.color = "#888"; wrap.style.fontWeight = "600"; wrap.textContent = "—";
+  }
+  card.appendChild(wrap);
+  const stats = document.createElement("div"); stats.className = "stat-row";
+  if (pic) {
+    stats.innerHTML = `
+      <span class="stat-pill"><span class="label">Probability</span><span class="value">${fmtPct(pic.probability)}</span></span>
+      <span class="stat-pill"><span class="label">Win History</span><span class="value">${pic.wins}</span></span>`;
+  }
+  card.appendChild(stats);
+  return card;
+}
+
+function renderLastRoundBanner() {
+  const host = $("#last-round-host"); host.innerHTML = "";
+  if (State.rounds.length === 0) return;
+  const last = State.rounds[0];
+  const div = document.createElement("div"); div.className = "last-round-banner";
+  div.innerHTML = `
+    <div class="label">★ LAST DRAW ★</div>
+    <div class="time">${fmtDate(last.timestamp)} — ${last.total_points} pts distributed across ${(last.winners || []).length} winners</div>`;
+  host.appendChild(div);
+}
+
+function renderBackOffice() {
+  const warningHost = $("#pool-warning-host"); warningHost.innerHTML = "";
+  if (State.pictures.length < MIN_POOL) {
+    const need = MIN_POOL - State.pictures.length;
+    const w = document.createElement("div"); w.className = "pool-warning";
+    w.innerHTML = `<b>Pool too small.</b> You need at least <b>${MIN_POOL}</b> pictures to play. Add <b>${need}</b> more.`;
+    warningHost.appendChild(w);
+  }
+  const host = $("#pool-host"); host.innerHTML = "";
+  if (State.pictures.length === 0) {
+    host.innerHTML = `<div class="pool-empty">No pictures yet. Use the upload box above to add some.</div>`;
+  } else {
+    const grid = document.createElement("div"); grid.className = "pool-grid";
+    for (const p of State.pictures) {
+      const item = document.createElement("div"); item.className = "pool-item";
+      item.innerHTML = `
+        <button class="x-btn" title="Delete" data-del="${p.id}">×</button>
+        <div class="pic">${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : ""}</div>
+        <div class="meta">
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="stats"><span>${fmtPct(p.probability)}</span><span>${p.wins} wins</span></div>
+        </div>`;
+      grid.appendChild(item);
+    }
+    host.appendChild(grid);
+    grid.querySelectorAll("[data-del]").forEach(btn => { btn.onclick = () => confirmDelete(btn.dataset.del); });
+  }
+  const sg = $("#settings-grid"); sg.innerHTML = "";
+  for (const def of MSG_DEFS) {
+    const row = document.createElement("div"); row.className = "settings-row";
+    row.innerHTML = `
+      <label>${def.label}</label>
+      <input type="text" data-setting="${def.key}" value="${escapeHtml(State.settings[def.key] || "")}" maxlength="200">`;
+    sg.appendChild(row);
+  }
+}
+
+function renderHistory() {
+  const host = $("#history-host"); host.innerHTML = "";
+  const rounds = State.rounds.slice(0, HISTORY_LIMIT);
+  if (rounds.length === 0) {
+    host.innerHTML = `<div class="history-empty">No rounds yet.</div>`;
+    $("#btn-clear-history").disabled = true;
+    return;
+  }
+  $("#btn-clear-history").disabled = false;
+  for (let i = 0; i < rounds.length; i++) {
+    const round = rounds[i];
+    const card = document.createElement("div"); card.className = "history-card";
+    const winners = round.winners || [];
+    const total = winners.reduce((s, w) => s + (w.points || 0), 0);
+    card.innerHTML = `
+      <div class="history-head">
+        <div class="h-title"><div class="ball">${rounds.length - i}</div> Round ${rounds.length - i}</div>
+        <div class="h-meta">${fmtDate(round.timestamp)}</div>
+        <div class="h-total">${total} PTS</div>
+      </div>
+      <div class="h-prizes">
+        ${winners.map((w, j) => {
+          const pic = State.pictures.find(p => p.id === w.pictureId);
+          const url = pic ? pic.imageUrl : (w.imageUrl || "");
+          return `
+            <div class="h-prize r${j + 1}">
+              <div class="h-rank">${["1ST","2ND","3RD","4TH","5TH","6TH"][j]}</div>
+              <div class="h-thumb">${url ? `<img src="${escapeHtml(url)}" alt="">` : ""}</div>
+              <div class="h-name" title="${escapeHtml(w.name || "")}">${escapeHtml(w.name || "(removed)")}</div>
+              <div class="h-pts">${w.points || 0} pts</div>
+            </div>`;
+        }).join("")}
+      </div>`;
+    host.appendChild(card);
+  }
+}
+
+/* ---------- Actions ---------- */
+async function handlePlay() {
+  if (!State.isAdmin) { openLoginModal(); return; }
+  if (State.pictures.length < MIN_POOL) { toast(`Add at least ${MIN_POOL} pictures to play.`, "error"); return; }
+  const ok = await modal({
+    title: "Start the round?",
+    body: `Draw ${ROUND_SIZE} winners from your ${State.pictures.length}-picture pool and update probabilities for the next round.`,
+    confirmText: "Spin",
+  });
+  if (!ok) return;
+  showDrawingOverlay();
+  await new Promise(r => setTimeout(r, 1400));
+
+  const localPics = State.pictures.map(p => ({ ...p }));
+  let winners;
+  try { winners = drawRound(localPics); }
+  catch (e) { hideDrawingOverlay(); toast(e.message, "error"); return; }
+  const winnerRecord = winners.map((w, i) => ({
+    pictureId: w.id, name: w.name, imageUrl: w.imageUrl,
+    prizeRank: i + 1, points: PRIZE_TABLE[i]
+  }));
+  applyRoundUpdates(localPics, winners);
+
+  try {
+    for (const p of localPics) {
+      await Store.updatePicture(p.id, { probability: p.probability, wins: p.wins });
+    }
+    await Store.createRound(winnerRecord, PRIZE_TABLE.reduce((s, v) => s + v, 0));
+    const allRounds = await Store.listRounds();
+    if (allRounds.length > HISTORY_LIMIT) {
+      for (const old of allRounds.slice(HISTORY_LIMIT)) {
+        try { await Store.deleteRound(old.id); } catch (e) {}
+      }
+    }
+    hideDrawingOverlay();
+    launchConfetti();
+    toast("Round complete! Probabilities updated.", "success");
+  } catch (e) {
+    console.error(e);
+    hideDrawingOverlay();
+    toast("Failed to save round: " + e.message, "error");
+  }
+}
+
+async function handleReset() {
+  if (!State.isAdmin) { openLoginModal(); return; }
+  if (State.pictures.length === 0) return;
+  const ok = await modal({
+    title: "Reset everything?",
+    body: "This sets every picture's probability back to equal (1 / N) AND clears all lifetime win counts. Round history is preserved.",
+    confirmText: "Yes, reset",
+    danger: true,
+  });
+  if (!ok) return;
+  const localPics = State.pictures.map(p => ({ ...p }));
+  resetAllProb(localPics);
+  try {
+    for (const p of localPics) {
+      await Store.updatePicture(p.id, { probability: p.probability, wins: 0 });
+    }
+    toast("Pool reset to equal probabilities.", "success");
+  } catch (e) { console.error(e); toast("Reset failed: " + e.message, "error"); }
+}
+
+async function handleClearHistory() {
+  if (!State.isAdmin) return;
+  if (State.rounds.length === 0) return;
+  const ok = await modal({
+    title: "Clear round history?",
+    body: `Permanently remove all ${State.rounds.length} rounds from history. Pictures and probabilities are not affected.`,
+    confirmText: "Clear", danger: true,
+  });
+  if (!ok) return;
+  try {
+    await Store.deleteAllRounds();
+    toast("History cleared.", "success");
+  } catch (e) { console.error(e); toast("Failed to clear: " + e.message, "error"); }
+}
+
+async function handleFiles(fileList) {
+  if (!State.isAdmin) { openLoginModal(); return; }
+  const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
+  if (files.length === 0) { toast("No valid image files.", "error"); return; }
+  for (const file of files) await confirmAdd(file);
+}
+
+async function confirmAdd(file) {
+  const { blob, dataUrl } = await downscaleImage(file, 800);
+  const defaultName = file.name.replace(/\.[^.]+$/, "");
+  let chosenName = defaultName;
+  const ok = await modal({
+    title: "Add this picture?",
+    html: `
+      <div class="preview"><img src="${dataUrl}" alt="preview"></div>
+      <p>This picture will join the pool. Existing probabilities are rebalanced (each × (1 − 1/N), new = 1/N).</p>
+      <label for="m-name">Display name</label>
+      <input type="text" id="m-name" value="${escapeHtml(defaultName)}" />`,
+    confirmText: "Add",
+    onConfirm: (m) => { chosenName = m.querySelector("#m-name").value.trim() || defaultName; }
+  });
+  if (!ok) return;
+  const localPics = State.pictures.map(p => ({ ...p }));
+  const newPic = { name: chosenName, probability: 0, wins: 0 };
+  addPictureProb(localPics, newPic);
+  try {
+    await Store.createPicture({ name: chosenName, imageBlob: blob, probability: newPic.probability, wins: 0 });
+    for (const p of localPics) {
+      await Store.updatePicture(p.id, { probability: p.probability });
+    }
+    toast(`"${chosenName}" added.`, "success");
+  } catch (e) { console.error(e); toast("Upload failed: " + e.message, "error"); }
+}
+
+async function confirmDelete(id) {
+  if (!State.isAdmin) return;
+  const pic = State.pictures.find(p => p.id === id); if (!pic) return;
+  const wouldBreakMin = (State.pictures.length - 1) < MIN_POOL;
+  const ok = await modal({
+    title: `Delete "${pic.name}"?`,
+    html: `
+      <div class="preview">${pic.imageUrl ? `<img src="${pic.imageUrl}" alt="${escapeHtml(pic.name)}">` : ""}</div>
+      <p>Probability ${fmtPct(pic.probability)}, ${pic.wins} wins. The share is redistributed proportionally to remaining pictures.</p>
+      ${wouldBreakMin ? `<p style="color:#c00;font-weight:600;">⚠ After deletion, the pool will fall below ${MIN_POOL} pictures, so Play will be disabled.</p>` : ""}`,
+    confirmText: "Delete", danger: true,
+  });
+  if (!ok) return;
+  const remaining = State.pictures.filter(p => p.id !== id).map(p => ({ ...p }));
+  removePictureProb(remaining);
+  try {
+    await Store.deletePicture(id, pic.storagePath);
+    for (const p of remaining) await Store.updatePicture(p.id, { probability: p.probability });
+    toast(`"${pic.name}" removed.`, "success");
+  } catch (e) { console.error(e); toast("Delete failed: " + e.message, "error"); }
+}
+
+async function handleSaveSettings() {
+  if (!State.isAdmin) return;
+  const inputs = $$('input[data-setting]');
+  try {
+    for (const inp of inputs) {
+      const key = inp.dataset.setting;
+      const val = inp.value.trim();
+      await Store.upsertSetting(key, val);
+      State.settings[key] = val;
+    }
+    toast("Messages saved.", "success");
+  } catch (e) { console.error(e); toast("Save failed: " + e.message, "error"); }
+}
+
+async function handleResetMessages() {
+  if (!State.isAdmin) return;
+  const ok = await modal({
+    title: "Reset messages to default?",
+    body: "All five home messages will be restored to their original text.",
+    confirmText: "Reset", danger: true,
+  });
+  if (!ok) return;
+  try {
+    for (const def of MSG_DEFS) {
+      const key = def.key; const val = DEFAULT_SETTINGS[key];
+      await Store.upsertSetting(key, val);
+      State.settings[key] = val;
+    }
+    toast("Messages reset to default.", "success");
+  } catch (e) { console.error(e); toast("Reset failed: " + e.message, "error"); }
+}
+
+/* ---------- Wiring ---------- */
+$$("#tabs .tab").forEach(t => t.onclick = () => setView(t.dataset.view));
+$("#btn-auth").onclick = () => { if (State.isAdmin) logout(); else openLoginModal(); };
+$("#btn-play").onclick = handlePlay;
+$("#btn-reset").onclick = handleReset;
+$("#btn-clear-history").onclick = handleClearHistory;
+$("#btn-save-settings").onclick = handleSaveSettings;
+$("#btn-reset-messages").onclick = handleResetMessages;
+
+const uploaderEl = $("#uploader"); const fileInput = $("#file-input");
+uploaderEl.onclick = (e) => { if (!State.isAdmin) { e.preventDefault(); openLoginModal(); } };
+fileInput.onchange = e => { handleFiles(e.target.files); fileInput.value = ""; };
+["dragenter", "dragover"].forEach(ev => uploaderEl.addEventListener(ev, e => { e.preventDefault(); uploaderEl.classList.add("dragover"); }));
+["dragleave", "drop"].forEach(ev => uploaderEl.addEventListener(ev, e => { e.preventDefault(); uploaderEl.classList.remove("dragover"); }));
+uploaderEl.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+
+/* ---------- Status bar ---------- */
+function setStatus(msg, kind = "default") {
+  const bar = $("#status-bar");
+  bar.classList.toggle("error", kind === "error");
+  bar.classList.toggle("success", kind === "success");
+  bar.innerHTML = `<span class="dot"></span> ${msg}`;
+  bar.classList.remove("hidden");
+}
+function hideStatus() { $("#status-bar").classList.add("hidden"); }
+
+/* ---------- Boot ---------- */
+async function boot() {
+  paintMarquee();
+
+  // Sanity-check config placeholders
+  if (!sb || SUPABASE_URL.startsWith("REPLACE_") || SUPABASE_ANON_KEY.startsWith("REPLACE_")) {
+    setStatus("Set SUPABASE_URL and SUPABASE_ANON_KEY in index.html — see SETUP.md", "error");
+    return;
+  }
+
+  // Restore session if any
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    State.isAdmin = !!session;
+  } catch (e) { console.warn("session check failed", e); }
+  updateAuthUI();
+
+  // Listen for auth changes (e.g., token refresh)
+  sb.auth.onAuthStateChange((event, session) => {
+    State.isAdmin = !!session;
+    updateAuthUI();
+    render();
+  });
+
+  setStatus("Connecting to Supabase…");
+  try {
+    State.pictures = await Store.listPictures();
+    State.rounds = await Store.listRounds();
+    State.settings = await Store.listSettings();
+    State.loading = false;
+    setStatus("Live", "success");
+    setTimeout(hideStatus, 2200);
+    await subscribeAll();
+    render();
+  } catch (e) {
+    console.error("Boot failed:", e);
+    setStatus("Connection failed — check Supabase setup", "error");
+    State.error = e.message;
+    render();
+  }
+}
+
+boot();
+
+window.__lotto = {
+  state: () => State, sb, Store,
+  drawRound, applyRoundUpdates, addPictureProb, removePictureProb, resetAllProb, normalize,
+  FLOOR, DEDUCTION_RATE, MIN_POOL, HISTORY_LIMIT, DEFAULT_SETTINGS
+};
+</script>
+</body>
+</html>
