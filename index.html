@@ -93,6 +93,27 @@
   .rank-card:hover { transform: translateY(-2px); }
   .rank-row.top-row .rank-card { border-color: var(--gold); }
   .rank-row.bottom-row .rank-card { border-color: var(--red); }
+  .rank-row.extra-row .rank-card { border-color: var(--blue); }
+  .rank-row.extra-row .rank-label { background: var(--blue); }
+
+  .extra-ranks {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 3px dashed var(--gold-deep);
+  }
+  .extra-ranks .section-title {
+    font-family: var(--font-display);
+    color: var(--navy); text-align: center;
+    letter-spacing: 1.5px; margin: 0 0 18px;
+    font-size: 15px;
+  }
+  .extra-ranks .section-title .count {
+    background: var(--navy); color: var(--gold);
+    padding: 3px 10px; border-radius: 999px;
+    margin-left: 8px; font-size: 12px;
+  }
+  .extra-ranks .rank-row { margin-bottom: 18px; }
+  .extra-ranks .rank-row:last-child { margin-bottom: 0; }
   .rank-card .rank-label { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--pink); color: white; padding: 4px 14px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; letter-spacing: 0.8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2; }
   .rank-card .pic-wrap { aspect-ratio: 3/4; background: var(--line); overflow: hidden; position: relative; border-radius: 4px; }
   .rank-card .pic-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -139,8 +160,17 @@
   .pool-item .meta { width: 100%; padding: 8px 4px 4px; text-align: center; }
   .pool-item .name { font-weight: 700; font-size: 13px; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); letter-spacing: 0.5px; }
   .pool-item .stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--cream); margin-top: 6px; padding: 0 4px; font-variant-numeric: tabular-nums; }
-  .pool-item .x-btn { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: white; border: 2px solid var(--gold); cursor: pointer; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; }
+  .pool-item .x-btn { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: white; border: 2px solid var(--gold); cursor: pointer; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; z-index: 2; }
   .pool-item .x-btn:hover { transform: scale(1.1); }
+  .pool-item .replace-btn { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: white; border: 2px solid var(--gold); cursor: pointer; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; z-index: 2; }
+  .pool-item .replace-btn:hover { transform: scale(1.1) rotate(90deg); }
+  .replace-compare { display: flex; gap: 12px; justify-content: center; align-items: center; margin: 0 0 16px; }
+  .replace-compare .col { text-align: center; }
+  .replace-compare .col .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; font-weight: 700; }
+  .replace-compare .col img { max-width: 140px; max-height: 140px; border-radius: 8px; }
+  .replace-compare .col.before img { border: 3px solid var(--red); }
+  .replace-compare .col.after img { border: 3px solid var(--green); }
+  .replace-compare .arrow { font-size: 32px; color: var(--gold); font-weight: 800; }
   .pool-warning { background: linear-gradient(180deg, #fff7e0, #ffeab8); border: 2px solid var(--gold-deep); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #5a4500; }
   .pool-warning b { color: var(--red); }
 
@@ -565,6 +595,36 @@ const Store = {
       try { await sb.storage.from(STORAGE_BUCKET).remove([storagePath]); } catch (e) { console.warn("Storage cleanup failed:", e); }
     }
   },
+  /**
+   * Replace the image (and optionally the name) of an existing picture.
+   * The probability and wins of the record are intentionally NOT touched —
+   * the picture keeps its place in the ranking and its history.
+   */
+  async replacePicture(id, imageBlob, newName) {
+    // Look up current storage_path so we can clean up after.
+    const { data: current, error: getErr } = await sb.from("pictures").select("storage_path").eq("id", id).single();
+    if (getErr) throw getErr;
+    const oldPath = current && current.storage_path;
+    // Upload new file.
+    const newPath = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`;
+    const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(newPath, imageBlob, { cacheControl: "3600", upsert: false, contentType: "image/jpeg" });
+    if (upErr) throw upErr;
+    const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(newPath);
+    const newUrl = urlData.publicUrl;
+    // Update the row — only image_url, storage_path, and optionally name.
+    const updates = { image_url: newUrl, storage_path: newPath };
+    if (newName && typeof newName === "string") updates.name = newName;
+    const { error: updErr } = await sb.from("pictures").update(updates).eq("id", id);
+    if (updErr) {
+      // Roll back the orphan upload.
+      try { await sb.storage.from(STORAGE_BUCKET).remove([newPath]); } catch (e) {}
+      throw updErr;
+    }
+    // Best-effort cleanup of the old file.
+    if (oldPath && oldPath !== newPath) {
+      try { await sb.storage.from(STORAGE_BUCKET).remove([oldPath]); } catch (e) { console.warn("Old storage cleanup failed:", e); }
+    }
+  },
   async createRound(winners, totalPoints) {
     const { data, error } = await sb.from("rounds").insert({ winners, total_points: totalPoints }).select().single();
     if (error) throw error;
@@ -786,6 +846,37 @@ function renderHome() {
   sheet.appendChild(botRow);
 
   sheet.appendChild(buildMsg("msg_disclaimer"));
+
+  // V2.1: render ranks 11+ below the disclaimer, in rows of 5 cards
+  if (sorted.length > 10) {
+    const extras = sorted.slice(10);
+    const section = document.createElement("div");
+    section.className = "extra-ranks";
+
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.innerHTML = `Other Rankings <span class="count">${extras.length} more</span>`;
+    section.appendChild(title);
+
+    for (let i = 0; i < extras.length; i += 5) {
+      const row = document.createElement("div");
+      row.className = "rank-row extra-row";
+      for (let j = 0; j < 5; j++) {
+        const idx = i + j;
+        if (idx < extras.length) {
+          row.appendChild(buildRankCard(extras[idx], 11 + idx));
+        } else {
+          // Empty placeholder slot to keep alignment in the final row
+          const ph = document.createElement("div");
+          ph.style.visibility = "hidden";
+          row.appendChild(ph);
+        }
+      }
+      section.appendChild(row);
+    }
+    sheet.appendChild(section);
+  }
+
   host.appendChild(sheet);
   renderLastRoundBanner();
 }
@@ -892,6 +983,7 @@ function renderBackOffice() {
     for (const p of State.pictures) {
       const item = document.createElement("div"); item.className = "pool-item";
       item.innerHTML = `
+        <button class="replace-btn" title="Replace image (keeps probability & wins)" data-replace="${p.id}">↻</button>
         <button class="x-btn" title="Delete" data-del="${p.id}">×</button>
         <div class="pic">${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : ""}</div>
         <div class="meta">
@@ -902,6 +994,7 @@ function renderBackOffice() {
     }
     host.appendChild(grid);
     grid.querySelectorAll("[data-del]").forEach(btn => { btn.onclick = () => confirmDelete(btn.dataset.del); });
+    grid.querySelectorAll("[data-replace]").forEach(btn => { btn.onclick = () => triggerReplace(btn.dataset.replace); });
   }
   const sg = $("#settings-grid"); sg.innerHTML = "";
   for (const def of MSG_DEFS) {
@@ -1061,6 +1154,65 @@ async function confirmAdd(file) {
     }
     toast(`"${chosenName}" added.`, "success");
   } catch (e) { console.error(e); toast("Upload failed: " + e.message, "error"); }
+}
+
+/**
+ * Open a one-shot file picker for replacing the image on an existing picture.
+ * The probability and wins of the record are preserved — only the image
+ * (and optionally the display name) change.
+ */
+function triggerReplace(id) {
+  if (!State.isAdmin) { openLoginModal(); return; }
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.style.display = "none";
+  document.body.appendChild(input);
+  input.onchange = async () => {
+    if (input.files && input.files[0]) {
+      try { await confirmReplace(id, input.files[0]); }
+      finally { input.remove(); }
+    } else { input.remove(); }
+  };
+  input.click();
+}
+
+async function confirmReplace(id, file) {
+  if (!State.isAdmin) return;
+  const pic = State.pictures.find(p => p.id === id); if (!pic) return;
+  const { blob, dataUrl } = await downscaleImage(file, 800);
+  let chosenName = pic.name;
+  const ok = await modal({
+    title: `Replace image for "${pic.name}"?`,
+    html: `
+      <p>The picture's current <b>probability (${fmtPct(pic.probability)})</b> and <b>win count (${pic.wins})</b> will be kept. Only the image (and optionally the name) will change.</p>
+      <div class="replace-compare">
+        <div class="col before">
+          <div class="label">CURRENT</div>
+          ${pic.imageUrl ? `<img src="${escapeHtml(pic.imageUrl)}" alt="current">` : '<div style="width:140px;height:140px;background:#eee;border-radius:8px;"></div>'}
+        </div>
+        <div class="arrow">→</div>
+        <div class="col after">
+          <div class="label">NEW</div>
+          <img src="${dataUrl}" alt="new preview">
+        </div>
+      </div>
+      <label for="m-name">Display name</label>
+      <input type="text" id="m-name" value="${escapeHtml(pic.name)}" maxlength="100" />`,
+    confirmText: "Replace image",
+    onConfirm: (m) => {
+      const v = m.querySelector("#m-name").value.trim();
+      chosenName = v || pic.name;
+    }
+  });
+  if (!ok) return;
+  try {
+    const renameTo = chosenName !== pic.name ? chosenName : null;
+    await Store.replacePicture(id, blob, renameTo);
+    toast(`"${chosenName}" image replaced.`, "success");
+  } catch (e) {
+    console.error(e); toast("Replace failed: " + e.message, "error");
+  }
 }
 
 async function confirmDelete(id) {
