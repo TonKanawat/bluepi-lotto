@@ -117,8 +117,19 @@
   .rank-card .rank-label { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--pink); color: white; padding: 4px 14px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; letter-spacing: 0.8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2; }
   .rank-card .pic-wrap { aspect-ratio: 3/4; background: var(--line); overflow: hidden; position: relative; border-radius: 4px; }
   .rank-card .pic-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .rank-card .name-overlay { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(255, 255, 255, 0.92); color: var(--blue); font-weight: 800; font-size: 13px; padding: 4px 8px; border-radius: 4px; text-align: center; border: 1px solid var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
   .rank-card .stat-row { display: flex; gap: 4px; padding: 6px 0 2px; justify-content: center; }
+  .rank-card .name-below {
+    margin-top: 4px; padding: 4px 8px; text-align: center;
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 13px; color: var(--navy);
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: 0.3px;
+  }
+  .rank-row.top-row .rank-card .name-below { color: var(--gold-deep); }
+  .rank-row.bottom-row .rank-card .name-below { color: var(--red); }
+  .rank-row.extra-row .rank-card .name-below { color: var(--blue-deep); }
   .stat-pill { background: linear-gradient(180deg, #4dd991, var(--green)); color: white; border: 0; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; cursor: default; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
   .stat-pill .label { opacity: 0.85; font-size: 9px; }
   .stat-pill .value { font-variant-numeric: tabular-nums; }
@@ -938,9 +949,7 @@ function buildRankCard(pic, rank) {
       const img = document.createElement("img"); img.src = pic.imageUrl; img.alt = pic.name || "";
       wrap.appendChild(img);
     }
-    const overlay = document.createElement("div"); overlay.className = "name-overlay";
-    overlay.textContent = pic.name || "(unnamed)";
-    wrap.appendChild(overlay);
+    // (Name is rendered below the stats now — see name-below below.)
   } else {
     wrap.style.display = "grid"; wrap.style.placeItems = "center";
     wrap.style.color = "#888"; wrap.style.fontWeight = "600"; wrap.textContent = "—";
@@ -953,6 +962,13 @@ function buildRankCard(pic, rank) {
       <span class="stat-pill"><span class="label">Win History</span><span class="value">${pic.wins}</span></span>`;
   }
   card.appendChild(stats);
+  if (pic) {
+    const nameBelow = document.createElement("div");
+    nameBelow.className = "name-below";
+    nameBelow.textContent = pic.name || "(unnamed)";
+    nameBelow.title = pic.name || "";
+    card.appendChild(nameBelow);
+  }
   return card;
 }
 
