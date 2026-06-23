@@ -217,21 +217,72 @@
     100% { transform: scale(1) translateY(0); opacity: 1; }
   }
 
-  /* Podium responsiveness */
-  @media (max-width: 920px) {
-    .prize.p1 .photo-frame { width: 160px; }
-    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 118px; }
-    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 110px; }
-    .first-deco { width: 260px; height: 180px; }
+  /* Empty state when no round has been played (or after Reset) */
+  .prize-podium-empty {
+    background: linear-gradient(180deg, var(--cream), #fff5d6);
+    border: 3px dashed var(--gold-deep);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    margin: 18px auto 0;
+    max-width: 520px;
+    box-shadow: var(--shadow);
+  }
+  .prize-podium-empty .empty-text {
+    font-family: var(--font-shade);
+    font-size: 56px;
+    color: var(--gold-deep);
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .prize-podium-empty .empty-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-style: italic;
   }
   @media (max-width: 520px) {
-    .prize-podium { gap: 14px 6px; }
-    .prize.p1 .photo-frame { width: 130px; }
-    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 92px; }
-    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 86px; }
-    .first-deco { width: 220px; height: 150px; }
-    .prize .label { font-size: 10px; padding: 4px 8px; }
-    .prize.p1 .label { font-size: 11px; padding: 5px 10px; }
+    .prize-podium-empty { padding: 36px 18px; }
+    .prize-podium-empty .empty-text { font-size: 42px; letter-spacing: 4px; }
+    .prize-podium-empty .empty-sub { font-size: 12px; }
+  }
+
+  /* Podium responsiveness */
+  @media (max-width: 920px) {
+    .prize.p1 .photo-frame { width: 180px; }
+    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 130px; }
+    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 115px; }
+    .first-deco { width: 260px; height: 180px; }
+  }
+  /* Mobile tweaks: shrink frames so they fit within grid spans,
+     and let labels wrap onto multiple lines so the Thai prize names
+     never overflow their cells. */
+  @media (max-width: 720px) {
+    .prize-podium { gap: 18px 4px; padding-top: 24px; }
+    .prize.p1 .photo-frame { width: 170px; }
+    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 120px; }
+    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 90px; }
+    .first-deco { width: 230px; height: 160px; }
+    .prize .label {
+      white-space: normal;
+      text-align: center;
+      line-height: 1.2;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      font-size: 10px;
+      padding: 4px 8px;
+      max-width: 100%;
+    }
+    .prize.p1 .label { font-size: 12px; padding: 5px 12px; }
+  }
+  @media (max-width: 520px) {
+    .prize-podium { gap: 14px 3px; padding-top: 18px; }
+    .prize.p1 .photo-frame { width: 145px; }
+    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 100px; }
+    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 74px; }
+    .first-deco { width: 200px; height: 140px; }
+    .prize .label { font-size: 9px; padding: 3px 6px; }
+    .prize.p1 .label { font-size: 11px; padding: 4px 10px; }
   }
 
   .msg-box { text-align: center; padding: 14px 22px; border-radius: 12px; font-family: var(--font-body); font-weight: 700; font-size: 18px; line-height: 1.3; box-shadow: var(--shadow); max-width: 88%; word-break: break-word; align-self: center; }
@@ -586,6 +637,9 @@ const DEFAULT_SETTINGS = {
   msg_top_2: "หน้าตาโพยยังเหมือนเดิม แต่ใจเตงไม่เหมือนเดิมหรือเปล่า",
   msg_middle: "เรายังเหมือนเดิมหรือเป็นเตงที่เปลี่ยนไป",
   msg_disclaimer: "Disclaimer: สุดยอดโพยนี้เป็นเพียงคำทำนายเท่านั้นนะจ่ะ ระบบมันคำนวณมาให้งะ",
+  // System-managed flag: "true" when the prize podium should display the latest round,
+  // "false" when it should show the Empty state (after a Reset or before the first Play).
+  podium_active: "true",
 };
 const MSG_DEFS = [
   { key: "msg_date", label: "Date header", variant: "red" },
@@ -1248,28 +1302,41 @@ function buildPrizeSlot(winner, idx) {
 }
 
 function renderPrizePodium(host) {
-  if (!State.rounds || State.rounds.length === 0) return;
-  const round = State.rounds[0];
-  const winners = round.winners || [];
-  if (winners.length === 0) return;
-
   const wrap = document.createElement("div");
   wrap.className = "prize-podium-wrap";
 
-  // Banner at the top of the podium. Independent from the msg_date setting,
-  // which still controls the red message box at the top of the 1-10 lotto sheet.
+  // Banner is always shown so the page always has an identifiable header.
   const dateBanner = document.createElement("div");
   dateBanner.className = "podium-date-banner";
   dateBanner.textContent = "The Latest Prizes!";
   wrap.appendChild(dateBanner);
 
-  const podium = document.createElement("div");
-  podium.className = "prize-podium";
-  podium.innerHTML = `<div class="first-deco" aria-hidden="true">${trophySVG()}</div>`;
-  for (let i = 0; i < 6; i++) {
-    podium.innerHTML += buildPrizeSlot(winners[i], i);
+  // The podium shows the latest round only when:
+  //   • podium_active === "true" (default), and
+  //   • there is at least one round in history with at least one winner.
+  // Reset sets podium_active to "false" so the podium goes back to Empty,
+  // while the History tab keeps all rounds intact.
+  const isActive = State.settings.podium_active !== "false";
+  const round = isActive && State.rounds && State.rounds.length > 0 ? State.rounds[0] : null;
+  const winners = (round && round.winners) || [];
+
+  if (winners.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "prize-podium-empty";
+    empty.innerHTML = `
+      <div class="empty-text">EMPTY</div>
+      <div class="empty-sub">No prizes have been drawn yet.</div>`;
+    wrap.appendChild(empty);
+  } else {
+    const podium = document.createElement("div");
+    podium.className = "prize-podium";
+    podium.innerHTML = `<div class="first-deco" aria-hidden="true">${trophySVG()}</div>`;
+    for (let i = 0; i < 6; i++) {
+      podium.innerHTML += buildPrizeSlot(winners[i], i);
+    }
+    wrap.appendChild(podium);
   }
-  wrap.appendChild(podium);
+
   host.appendChild(wrap);
 }
 
@@ -1377,6 +1444,9 @@ async function handlePlay() {
       await Store.updatePicture(p.id, { probability: p.probability, wins: p.wins });
     }
     await Store.createRound(winnerRecord, PRIZE_TABLE.reduce((s, v) => s + v, 0));
+    // Mark podium as active so the Latest Prizes section shows the new round.
+    await Store.upsertSetting("podium_active", "true");
+    State.settings.podium_active = "true";
     const allRounds = await Store.listRounds();
     if (allRounds.length > HISTORY_LIMIT) {
       for (const old of allRounds.slice(HISTORY_LIMIT)) {
@@ -1398,7 +1468,7 @@ async function handleReset() {
   if (State.pictures.length === 0) return;
   const ok = await modal({
     title: "Reset everything?",
-    body: "This sets every picture's probability back to equal (1 / N) AND clears all lifetime win counts. Round history is preserved.",
+    body: "This sets every picture's probability back to equal (1 / N), clears every lifetime win count, AND clears the Latest Prizes display so it shows Empty. Round history in the History tab is preserved.",
     confirmText: "Yes, reset",
     danger: true,
   });
@@ -1409,6 +1479,9 @@ async function handleReset() {
     for (const p of localPics) {
       await Store.updatePicture(p.id, { probability: p.probability, wins: 0 });
     }
+    // Clear the prize podium display (but keep round history intact).
+    await Store.upsertSetting("podium_active", "false");
+    State.settings.podium_active = "false";
     toast("Pool reset to equal probabilities.", "success");
   } catch (e) { console.error(e); toast("Reset failed: " + e.message, "error"); }
 }
