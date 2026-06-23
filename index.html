@@ -87,6 +87,153 @@
   .stage-content { position: relative; z-index: 3; padding: 50px 30px 20px; }
 
   .lotto-sheet { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ===== PRIZE PODIUM (V1-style, restored) ===== */
+  .prize-podium-wrap {
+    margin-bottom: 28px;
+  }
+  .podium-date-banner {
+    background: linear-gradient(180deg, #ffd633, var(--gold));
+    color: var(--navy-deep);
+    border: 2px solid var(--gold-deep);
+    text-align: center;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto 18px;
+    box-shadow: var(--shadow);
+  }
+  .prize-podium {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 24px 12px;
+    align-items: end;
+    padding-top: 20px;
+    position: relative;
+  }
+  .first-deco {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px; height: 260px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .first-deco svg { width: 100%; height: 100%; }
+  .prize {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2;
+  }
+  .prize .label {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    color: var(--ink);
+    white-space: nowrap;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    border: 2px solid;
+    text-align: center;
+  }
+  .prize.p1 .label {
+    background: linear-gradient(180deg, #fff37a, var(--gold));
+    color: var(--navy-deep);
+    border-color: var(--gold-deep);
+    font-size: 13px;
+    padding: 6px 16px;
+  }
+  .prize.p2 .label, .prize.p3 .label {
+    background: linear-gradient(180deg, #d4d4d4, #8a8a8a);
+    color: white;
+    border-color: #5a5a5a;
+  }
+  .prize.p4 .label, .prize.p5 .label, .prize.p6 .label {
+    background: linear-gradient(180deg, #ff9866, var(--orange));
+    color: white;
+    border-color: #b04500;
+  }
+  .photo-frame {
+    background: var(--cream);
+    padding: 10px 8px 14px;
+    border: 3px solid;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.4s cubic-bezier(0.2, 1.2, 0.4, 1);
+    border-radius: 4px;
+  }
+  .photo-frame::before, .photo-frame::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 6px;
+    background-image: radial-gradient(circle, var(--bg) 2px, transparent 2.5px);
+    background-size: 12px 6px;
+    background-position: center;
+    background-repeat: repeat-x;
+  }
+  .photo-frame::before { top: -3px; }
+  .photo-frame::after { bottom: -3px; }
+  .prize.p1 .photo-frame { border-color: var(--gold); width: 220px; }
+  .prize.p2 .photo-frame, .prize.p3 .photo-frame { border-color: #5a8acc; width: 158px; }
+  .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { border-color: var(--red); width: 150px; }
+  .photo-frame img {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block;
+    border-radius: 2px;
+  }
+  .photo-frame .name-tag {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: white; color: var(--blue);
+    padding: 3px 12px; border: 2px solid var(--blue);
+    border-radius: 4px; font-size: 11px; font-weight: 700;
+    white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis;
+    z-index: 3;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .photo-frame .stub {
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: 10px;
+    color: var(--red);
+    text-align: center;
+    letter-spacing: 1px;
+    border-top: 1px dashed rgba(0,0,0,0.18);
+    padding-top: 6px;
+  }
+  .prize.p1 { grid-column: 3 / span 2; grid-row: 1; }
+  .prize.p2 { grid-column: 2 / span 1; grid-row: 2; justify-self: end; }
+  .prize.p3 { grid-column: 5 / span 1; grid-row: 2; justify-self: start; }
+  .prize.p4 { grid-column: 1 / span 2; grid-row: 3; justify-self: center; }
+  .prize.p5 { grid-column: 3 / span 2; grid-row: 3; justify-self: center; }
+  .prize.p6 { grid-column: 5 / span 2; grid-row: 3; justify-self: center; }
+  .prize.reveal { animation: pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+  @keyframes pop {
+    0% { transform: scale(0.3) translateY(-30px); opacity: 0; }
+    70% { transform: scale(1.06) translateY(0); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  /* Podium responsiveness */
+  @media (max-width: 920px) {
+    .prize.p1 .photo-frame { width: 160px; }
+    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 118px; }
+    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 110px; }
+    .first-deco { width: 260px; height: 180px; }
+  }
+  @media (max-width: 520px) {
+    .prize-podium { gap: 14px 6px; }
+    .prize.p1 .photo-frame { width: 130px; }
+    .prize.p2 .photo-frame, .prize.p3 .photo-frame { width: 92px; }
+    .prize.p4 .photo-frame, .prize.p5 .photo-frame, .prize.p6 .photo-frame { width: 86px; }
+    .first-deco { width: 220px; height: 150px; }
+    .prize .label { font-size: 10px; padding: 4px 8px; }
+    .prize.p1 .label { font-size: 11px; padding: 5px 10px; }
+  }
+
   .msg-box { text-align: center; padding: 14px 22px; border-radius: 12px; font-family: var(--font-body); font-weight: 700; font-size: 18px; line-height: 1.3; box-shadow: var(--shadow); max-width: 88%; word-break: break-word; align-self: center; }
   .msg-box.red { background: var(--red); color: white; }
   .msg-box.blue { background: var(--blue); color: white; }
@@ -858,10 +1005,29 @@ function renderHome() {
           ? "Head to <b>BackOffice</b> to upload pictures."
           : "Waiting for the admin to set up the picture pool."}</p>
       </div>`;
-    renderLastRoundBanner();
     return;
   }
 
+  // V2.1 update: Home Page order matches the spec diagram:
+  //   1. Prize Podium (from the most recent round, if any)
+  //   2. Play / Reset (admin only)
+  //   3. 1st-10th Ranking chart (lotto sheet with messages)
+  //   4. 11th-onward extras
+
+  // (1) Prize podium
+  renderPrizePodium(host);
+
+  // (2) Play / Reset
+  const sheetActions = document.createElement("div");
+  sheetActions.className = "sheet-actions admin-only" + (State.isAdmin ? "" : " locked");
+  sheetActions.innerHTML = `
+    <button class="btn btn-primary" id="btn-play"><span class="icon-ball">★</span> Play</button>
+    <button class="btn btn-warn" id="btn-reset"><span>↺</span> Reset</button>`;
+  sheetActions.querySelector("#btn-play").onclick = handlePlay;
+  sheetActions.querySelector("#btn-reset").onclick = handleReset;
+  host.appendChild(sheetActions);
+
+  // (3) Lotto sheet — 1st-10th ranking with editable messages
   const sorted = [...State.pictures].sort((a, b) => b.probability - a.probability);
   const top10 = sorted.slice(0, 10);
   const top5 = top10.slice(0, 5);
@@ -884,19 +1050,9 @@ function renderHome() {
   sheet.appendChild(botRow);
 
   sheet.appendChild(buildMsg("msg_disclaimer"));
+  host.appendChild(sheet);
 
-  // V2.1 update: Play / Reset buttons sit between the 1st-10th chart
-  // and the 11+ section. Visible only to admins.
-  const sheetActions = document.createElement("div");
-  sheetActions.className = "sheet-actions admin-only" + (State.isAdmin ? "" : " locked");
-  sheetActions.innerHTML = `
-    <button class="btn btn-primary" id="btn-play"><span class="icon-ball">★</span> Play</button>
-    <button class="btn btn-warn" id="btn-reset"><span>↺</span> Reset</button>`;
-  sheetActions.querySelector("#btn-play").onclick = handlePlay;
-  sheetActions.querySelector("#btn-reset").onclick = handleReset;
-  sheet.appendChild(sheetActions);
-
-  // V2.1: render ranks 11+ below the disclaimer, in rows of 5 cards
+  // (4) Ranks 11+ — extra rankings section
   if (sorted.length > 10) {
     const extras = sorted.slice(10);
     const section = document.createElement("div");
@@ -915,7 +1071,6 @@ function renderHome() {
         if (idx < extras.length) {
           row.appendChild(buildRankCard(extras[idx], 11 + idx));
         } else {
-          // Empty placeholder slot to keep alignment in the final row
           const ph = document.createElement("div");
           ph.style.visibility = "hidden";
           row.appendChild(ph);
@@ -923,11 +1078,8 @@ function renderHome() {
       }
       section.appendChild(row);
     }
-    sheet.appendChild(section);
+    host.appendChild(section);
   }
-
-  host.appendChild(sheet);
-  renderLastRoundBanner();
 }
 
 function buildMsg(key) {
@@ -1011,14 +1163,114 @@ function buildRankCard(pic, rank) {
 }
 
 function renderLastRoundBanner() {
-  const host = $("#last-round-host"); host.innerHTML = "";
-  if (State.rounds.length === 0) return;
-  const last = State.rounds[0];
-  const div = document.createElement("div"); div.className = "last-round-banner";
-  div.innerHTML = `
-    <div class="label">★ LAST DRAW ★</div>
-    <div class="time">${fmtDate(last.timestamp)} — ${last.total_points} pts distributed across ${(last.winners || []).length} winners</div>`;
-  host.appendChild(div);
+  // V2.1 update: the small "Last Draw" banner is replaced by the full V1-style
+  // prize podium rendered at the top of the home host. This function is kept
+  // as a no-op so existing call sites don't error.
+  const host = $("#last-round-host");
+  if (host) host.innerHTML = "";
+}
+
+/* ===== PRIZE PODIUM (V1-style, restored) ===== */
+const PRIZE_LABELS_TH = [
+  { text: "รางวัลที่หนึ่ง – 600 Points", cls: "p1" },
+  { text: "รางวัลที่สอง ชุดที่ 1 – 300 Points", cls: "p2" },
+  { text: "รางวัลที่สอง ชุดที่ 2 – 300 Points", cls: "p3" },
+  { text: "รางวัลที่สาม ชุดที่ 1 – 100 Points", cls: "p4" },
+  { text: "รางวัลที่สาม ชุดที่ 2 – 100 Points", cls: "p5" },
+  { text: "รางวัลที่สาม ชุดที่ 3 – 100 Points", cls: "p6" },
+];
+
+function trophySVG() {
+  return `
+    <svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+      <g stroke-linecap="round" stroke-width="3" fill="none" opacity="0.75">
+        ${(() => {
+          const colors = ["#d12128","#f6b800","#2967df","#2bb673","#7b4fa3","#ef7b1f","#19b3c3"];
+          let out = "";
+          const burst = (cx, cy, radius) => {
+            for (let i = 0; i < 12; i++) {
+              const angle = (i * 30) * Math.PI / 180;
+              const x1 = cx + Math.cos(angle) * radius * 0.5;
+              const y1 = cy + Math.sin(angle) * radius * 0.5;
+              const x2 = cx + Math.cos(angle) * radius;
+              const y2 = cy + Math.sin(angle) * radius;
+              out += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${colors[i % colors.length]}"/>`;
+            }
+            for (let i = 0; i < 12; i++) {
+              const angle = (i * 30 + 15) * Math.PI / 180;
+              const x = cx + Math.cos(angle) * radius * 1.1;
+              const y = cy + Math.sin(angle) * radius * 1.1;
+              out += `<circle cx="${x}" cy="${y}" r="3" fill="${colors[i % colors.length]}"/>`;
+            }
+          };
+          burst(60, 60, 50);
+          burst(320, 70, 55);
+          burst(60, 180, 40);
+          burst(320, 190, 45);
+          return out;
+        })()}
+      </g>
+      <g transform="translate(190,130)">
+        <path d="M -55 -50 Q -85 -50 -85 -10 Q -85 30 -55 30" fill="none" stroke="#c98a00" stroke-width="6"/>
+        <path d="M 55 -50 Q 85 -50 85 -10 Q 85 30 55 30" fill="none" stroke="#c98a00" stroke-width="6"/>
+        <path d="M -55 -60 L 55 -60 L 50 30 Q 50 50 30 55 L -30 55 Q -50 50 -50 30 Z" fill="url(#trophyGrad)" stroke="#a37100" stroke-width="3"/>
+        <path d="M -42 -52 L -38 20" stroke="#fff7b8" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+        <rect x="-10" y="55" width="20" height="22" fill="#c98a00"/>
+        <rect x="-40" y="77" width="80" height="14" rx="3" fill="#a37100"/>
+        <rect x="-50" y="91" width="100" height="10" rx="2" fill="#7a5400"/>
+        <polygon points="0,-40 6,-22 24,-22 10,-12 14,6 0,-4 -14,6 -10,-12 -24,-22 -6,-22" fill="#fff7b8" stroke="#a37100" stroke-width="1.5"/>
+      </g>
+      <defs>
+        <linearGradient id="trophyGrad" x1="0" y1="-60" x2="0" y2="55" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#fff8c4"/>
+          <stop offset="0.5" stop-color="#f6b800"/>
+          <stop offset="1" stop-color="#c98a00"/>
+        </linearGradient>
+      </defs>
+    </svg>`;
+}
+
+function buildPrizeSlot(winner, idx) {
+  if (!winner) return "";
+  const info = PRIZE_LABELS_TH[idx];
+  const pic = State.pictures.find(p => p.id === winner.pictureId);
+  const imageUrl = pic ? pic.imageUrl : (winner.imageUrl || "");
+  const name = winner.name || (pic ? pic.name : "(removed)");
+  return `
+    <div class="prize ${info.cls} reveal" style="animation-delay:${idx * 0.12}s">
+      <div class="label">${info.text}</div>
+      <div class="photo-frame">
+        <div class="name-tag">${escapeHtml(name)}</div>
+        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" />
+        <div class="stub">★ TICKET ★</div>
+      </div>
+    </div>`;
+}
+
+function renderPrizePodium(host) {
+  if (!State.rounds || State.rounds.length === 0) return;
+  const round = State.rounds[0];
+  const winners = round.winners || [];
+  if (winners.length === 0) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "prize-podium-wrap";
+
+  // Date banner at the top of the podium (reuses the editable msg_date setting).
+  const dateText = State.settings.msg_date || DEFAULT_SETTINGS.msg_date;
+  const dateBanner = document.createElement("div");
+  dateBanner.className = "podium-date-banner";
+  dateBanner.textContent = dateText;
+  wrap.appendChild(dateBanner);
+
+  const podium = document.createElement("div");
+  podium.className = "prize-podium";
+  podium.innerHTML = `<div class="first-deco" aria-hidden="true">${trophySVG()}</div>`;
+  for (let i = 0; i < 6; i++) {
+    podium.innerHTML += buildPrizeSlot(winners[i], i);
+  }
+  wrap.appendChild(podium);
+  host.appendChild(wrap);
 }
 
 function renderBackOffice() {
