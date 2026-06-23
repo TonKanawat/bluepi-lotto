@@ -1256,11 +1256,11 @@ function renderPrizePodium(host) {
   const wrap = document.createElement("div");
   wrap.className = "prize-podium-wrap";
 
-  // Date banner at the top of the podium (reuses the editable msg_date setting).
-  const dateText = State.settings.msg_date || DEFAULT_SETTINGS.msg_date;
+  // Banner at the top of the podium. Independent from the msg_date setting,
+  // which still controls the red message box at the top of the 1-10 lotto sheet.
   const dateBanner = document.createElement("div");
   dateBanner.className = "podium-date-banner";
-  dateBanner.textContent = dateText;
+  dateBanner.textContent = "The Latest Prizes!";
   wrap.appendChild(dateBanner);
 
   const podium = document.createElement("div");
