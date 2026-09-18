@@ -607,6 +607,48 @@
     font-size: 13px; color: var(--ink);
   }
   .modal .form-info b { color: var(--red); }
+  /* Multi-select prize checkboxes for Win the lotto */
+  .prize-checkboxes {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 260px; overflow-y: auto;
+    padding: 6px; border: 2px solid var(--gold-deep);
+    border-radius: 8px; background: white;
+  }
+  .prize-check {
+    display: grid; grid-template-columns: 22px 1fr auto;
+    gap: 10px; align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    border: 2px solid transparent;
+    background: var(--cream);
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .prize-check:hover { border-color: var(--gold-deep); }
+  .prize-check input[type="checkbox"] {
+    width: 18px; height: 18px; cursor: pointer; margin: 0;
+    accent-color: var(--red);
+  }
+  .prize-check .prize-name {
+    color: var(--navy); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .prize-check .prize-pts {
+    background: var(--navy); color: var(--gold);
+    padding: 2px 8px; border-radius: 999px;
+    font-family: var(--font-display); font-size: 11px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .prize-check input[type="checkbox"]:checked ~ .prize-name { color: var(--red); }
+  .prize-check:has(input[type="checkbox"]:checked) {
+    background: linear-gradient(180deg, #fff37a, #ffe9a8);
+    border-color: var(--gold-deep);
+  }
+  .form-row-block { display: block; margin-bottom: 12px; }
+  .form-row-block > label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(20, 12, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
   .modal-overlay.show { display: flex; }
@@ -2087,76 +2129,92 @@ async function openWinTheLotto(player) {
     const label = d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
     return `<option value="${r.id}" data-created="${r.timestamp || r.created_at}">${label}${idx === 0 ? " (latest)" : ""}</option>`;
   }).join("");
-  const prizeOptions = PRIZE_LABELS_FORM.map(p =>
-    `<option value="${p.rank}" data-points="${p.points}">${p.label}</option>`
-  ).join("");
-
-  let chosenRoundId = rounds[0].id;
-  let chosenRoundCreatedAt = rounds[0].timestamp || rounds[0].created_at;
-  let chosenPrizeRank = 1;
-  let chosenPoints = 600;
-  let chosenNote = "";
+  const prizeCheckboxes = PRIZE_LABELS_FORM.map(p => {
+    // Split "1st Prize (รางวัลที่หนึ่ง) — 600 pts" into the name portion and drop the "— … pts" tail
+    // because points are already shown in the pill on the right.
+    const name = p.label.replace(/\s—.*$/, "");
+    return `
+      <label class="prize-check">
+        <input type="checkbox" data-rank="${p.rank}" data-points="${p.points}" />
+        <span class="prize-name">${escapeHtml(name)}</span>
+        <span class="prize-pts">${p.points} pts</span>
+      </label>`;
+  }).join("");
 
   const ok = await modal({
     title: `Win the lotto — ${player.name}`,
     html: `
       <div class="form-info">
-        Award <b>${escapeHtml(player.name)}</b> a prize from a past round. The system auto-picks the latest round; you can change it to any round in history.
+        Award <b>${escapeHtml(player.name)}</b> one or more prizes from a past round. Tick every prize they won — the system auto-picks the latest round; you can change it to any round in history.
       </div>
       <div class="form-row">
         <label for="win-round">Round</label>
         <select id="win-round">${roundOptions}</select>
       </div>
-      <div class="form-row">
-        <label for="win-prize">Prize</label>
-        <select id="win-prize">${prizeOptions}</select>
+      <div class="form-row-block">
+        <label>Prizes (tick one or more)</label>
+        <div class="prize-checkboxes" id="win-prize-list">
+          ${prizeCheckboxes}
+        </div>
       </div>
       <div class="form-row">
         <label for="win-note">Note (optional)</label>
-        <input type="text" id="win-note" maxlength="120" placeholder="e.g., substituted for original winner" />
+        <input type="text" id="win-note" maxlength="120" placeholder="e.g., special draw for October event" />
       </div>
       <div class="form-info">
-        Points awarded: <b id="win-preview">600</b>
+        Selected: <b id="win-count">0 prize(s)</b> &nbsp;·&nbsp; Total points: <b id="win-preview">0</b>
       </div>
       <div class="error" id="win-err"></div>`,
-    confirmText: "Award prize",
+    confirmText: "Award prize(s)",
     onConfirm: async (m) => {
-      chosenRoundId = m.querySelector("#win-round").value;
+      const chosenRoundId = m.querySelector("#win-round").value;
       const sel = m.querySelector("#win-round").selectedOptions[0];
-      chosenRoundCreatedAt = sel ? sel.dataset.created : null;
-      chosenPrizeRank = Number(m.querySelector("#win-prize").value);
-      const prizeSel = m.querySelector("#win-prize").selectedOptions[0];
-      chosenPoints = Number(prizeSel.dataset.points);
-      chosenNote = m.querySelector("#win-note").value.trim();
+      const chosenRoundCreatedAt = sel ? sel.dataset.created : null;
+      const chosenNote = m.querySelector("#win-note").value.trim();
+      const checked = Array.from(m.querySelectorAll("#win-prize-list input[type='checkbox']:checked"))
+        .map(inp => ({ rank: Number(inp.dataset.rank), points: Number(inp.dataset.points) }));
+      const err = m.querySelector("#win-err");
+      if (checked.length === 0) {
+        err.textContent = "Pick at least one prize before awarding.";
+        return false;
+      }
       try {
-        await Store.addPointEntry({
-          player_id: player.id,
-          player_name_snapshot: player.name,
-          delta: chosenPoints,
-          type: "lotto_win",
-          round_id: chosenRoundId,
-          round_created_at: chosenRoundCreatedAt,
-          prize_rank: chosenPrizeRank,
-          note: chosenNote || null,
-        });
-        toast(`${player.name} awarded ${chosenPoints} pts`, "success");
+        // Create one point_history entry per checked prize, all linked to the same round.
+        for (const p of checked) {
+          await Store.addPointEntry({
+            player_id: player.id,
+            player_name_snapshot: player.name,
+            delta: p.points,
+            type: "lotto_win",
+            round_id: chosenRoundId,
+            round_created_at: chosenRoundCreatedAt,
+            prize_rank: p.rank,
+            note: chosenNote || null,
+          });
+        }
+        const total = checked.reduce((s, p) => s + p.points, 0);
+        toast(`${player.name} awarded ${checked.length} prize${checked.length === 1 ? "" : "s"} · ${total} pts`, "success");
       } catch (e) {
-        m.querySelector("#win-err").textContent = "Save failed: " + e.message;
+        err.textContent = "Save failed: " + e.message;
         return false;
       }
     },
   });
 
-  // Set up live points-preview when the modal opens by wiring listeners after modal html is inserted.
-  // We can't easily do it in onConfirm, so use setTimeout to attach after the DOM is populated.
+  // Wire the live "selected count / total points" preview after the modal DOM is inserted.
   setTimeout(() => {
-    const prizeSelect = document.querySelector("#win-prize");
+    const list = document.querySelector("#win-prize-list");
     const preview = document.querySelector("#win-preview");
-    if (prizeSelect && preview) {
-      prizeSelect.onchange = () => {
-        const sel = prizeSelect.selectedOptions[0];
-        if (sel) preview.textContent = sel.dataset.points;
+    const countEl = document.querySelector("#win-count");
+    if (list && preview && countEl) {
+      const update = () => {
+        const checked = Array.from(list.querySelectorAll("input[type='checkbox']:checked"));
+        const total = checked.reduce((s, inp) => s + Number(inp.dataset.points), 0);
+        preview.textContent = total.toLocaleString();
+        countEl.textContent = `${checked.length} prize${checked.length === 1 ? "" : "s"}`;
       };
+      list.addEventListener("change", update);
+      update();
     }
   }, 30);
 }
