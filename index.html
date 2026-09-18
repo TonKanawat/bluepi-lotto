@@ -427,6 +427,229 @@
   .h-prize .h-name { font-size: 10px; color: var(--ink); font-weight: 600; margin-top: 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .h-prize .h-pts { background: var(--navy); color: var(--gold); padding: 1px 6px; border-radius: 999px; font-size: 9px; font-weight: 700; margin-top: 3px; font-family: var(--font-display); }
 
+  /* ===== PLAYER RANKING ===== */
+  .ranking-list {
+    background: white; border-radius: var(--radius);
+    padding: 24px; margin-top: 20px;
+    box-shadow: var(--shadow); border: 2px solid var(--gold);
+  }
+  .ranking-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 16px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .ranking-header h3 {
+    margin: 0 0 4px; font-family: var(--font-display); letter-spacing: 1px;
+    color: var(--navy); font-size: 18px;
+  }
+  .ranking-header .sub { color: var(--muted); font-size: 13px; }
+  .year-picker {
+    display: flex; flex-direction: column; gap: 4px; min-width: 160px;
+  }
+  .year-picker label {
+    font-size: 11px; font-weight: 700; color: var(--navy);
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .year-picker select {
+    padding: 8px 10px; border: 2px solid var(--gold-deep);
+    border-radius: 8px; font-family: var(--font-body); font-weight: 700;
+    background: white; color: var(--navy); font-size: 14px;
+    cursor: pointer;
+  }
+  .demo-banner {
+    background: linear-gradient(180deg, #fff7e0, #ffeab8);
+    border: 2px dashed var(--gold-deep);
+    padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; color: #5a4500; margin-bottom: 16px;
+  }
+  .demo-banner b { color: var(--red); letter-spacing: 1px; }
+  .demo-banner code {
+    background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 4px;
+    font-family: SFMono-Regular, Consolas, monospace; font-size: 12px;
+  }
+
+  .player-row {
+    display: grid; grid-template-columns: 46px 56px 1fr 130px 20px;
+    gap: 12px; align-items: center; padding: 10px 14px;
+    border: 2px solid transparent;
+    border-radius: 12px; margin-bottom: 8px;
+    background: linear-gradient(180deg, #fffbe8, #fff5d6);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .player-row:hover { border-color: var(--gold-deep); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .player-row.expanded { border-color: var(--red); background: white; }
+  .player-row .rank-ball {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, var(--gold) 60%, var(--gold-deep));
+    color: var(--navy-deep); display: grid; place-items: center;
+    font-family: var(--font-display); font-size: 14px;
+    box-shadow: inset -2px -2px 5px rgba(0,0,0,0.18);
+  }
+  .player-row .rank-ball.r2 { background: radial-gradient(circle at 35% 30%, #fff, #b8b8b8 60%, #8a8a8a); color: white; }
+  .player-row .rank-ball.r3 { background: radial-gradient(circle at 35% 30%, #fff, #d68b54 60%, #a25c2c); color: white; }
+  .player-row .rank-ball.rN { background: radial-gradient(circle at 35% 30%, #fff, #d8d8d8 60%, #aaa); color: var(--ink); font-size: 12px; }
+  .player-row .thumb {
+    width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
+    background: var(--line); border: 2px solid var(--gold);
+    display: grid; place-items: center; font-size: 11px; color: var(--muted);
+  }
+  .player-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .player-row .name {
+    font-weight: 700; font-size: 15px; color: var(--navy);
+    display: flex; align-items: center; gap: 8px;
+    overflow: hidden;
+  }
+  .player-row .name .tag-removed {
+    font-size: 10px; padding: 1px 6px; background: #d1d1d1; color: #333;
+    border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .player-row .points-cell {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .player-row .points-cell .value {
+    font-family: var(--font-display); font-size: 18px;
+    color: var(--red); letter-spacing: 1px;
+  }
+  .player-row .points-cell .label {
+    font-size: 10px; color: var(--muted); letter-spacing: 1px;
+    text-transform: uppercase; font-weight: 700;
+  }
+  .player-row .chevron {
+    color: var(--muted); font-size: 16px; transition: transform 0.2s;
+  }
+  .player-row.expanded .chevron { transform: rotate(180deg); color: var(--red); }
+
+  .player-dropdown {
+    background: white;
+    border: 2px solid var(--red);
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    margin: -10px 0 12px;
+    padding: 16px 18px 18px;
+    animation: dropdownIn 0.2s ease-out;
+  }
+  @keyframes dropdownIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .player-dropdown .dropdown-admin-actions {
+    display: flex; gap: 10px; margin-bottom: 14px;
+    padding-bottom: 14px; border-bottom: 1px dashed var(--gold-deep);
+    flex-wrap: wrap;
+  }
+  .player-dropdown .dropdown-admin-actions .btn {
+    padding: 9px 18px; font-size: 12px;
+  }
+  .player-dropdown .history-year-title {
+    font-family: var(--font-display); color: var(--navy);
+    font-size: 13px; letter-spacing: 1px; margin: 0 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .player-dropdown .history-year-title .year-chip {
+    background: var(--navy); color: var(--gold);
+    padding: 2px 10px; border-radius: 999px; font-size: 11px;
+  }
+  .player-dropdown .history-empty {
+    color: var(--muted); text-align: center; padding: 18px;
+    font-style: italic; font-size: 13px;
+  }
+  .history-row {
+    display: grid; grid-template-columns: 140px 100px 1fr 90px;
+    gap: 12px; align-items: center;
+    padding: 8px 4px;
+    border-bottom: 1px solid #f0e6c8;
+    font-size: 13px;
+  }
+  .history-row:last-child { border-bottom: 0; }
+  .history-row .h-date { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .history-row .h-type {
+    font-family: var(--font-display); font-size: 10px;
+    padding: 3px 8px; border-radius: 999px; letter-spacing: 0.5px;
+    text-align: center; white-space: nowrap;
+  }
+  .history-row .h-type.lotto { background: linear-gradient(180deg, #fff37a, var(--gold)); color: var(--navy-deep); border: 1px solid var(--gold-deep); }
+  .history-row .h-type.manual { background: linear-gradient(180deg, #cfd8ff, #8fa8f0); color: var(--navy-deep); border: 1px solid var(--blue-deep); }
+  .history-row .h-detail { color: var(--ink); font-size: 12px; overflow: hidden; }
+  .history-row .h-detail .note { color: var(--muted); font-style: italic; font-size: 11px; }
+  .history-row .h-delta {
+    text-align: right; font-family: var(--font-display); font-variant-numeric: tabular-nums;
+    font-size: 14px; letter-spacing: 0.5px;
+  }
+  .history-row .h-delta.pos { color: var(--green-deep); }
+  .history-row .h-delta.neg { color: var(--red-deep); }
+
+  @media (max-width: 720px) {
+    .player-row { grid-template-columns: 36px 44px 1fr 100px 16px; padding: 8px 10px; gap: 8px; }
+    .player-row .rank-ball { width: 32px; height: 32px; font-size: 12px; }
+    .player-row .thumb { width: 40px; height: 40px; }
+    .player-row .name { font-size: 13px; }
+    .player-row .points-cell .value { font-size: 15px; }
+    .history-row { grid-template-columns: 90px 78px 1fr 70px; gap: 6px; font-size: 12px; }
+    .history-row .h-date { font-size: 11px; }
+    .history-row .h-type { font-size: 9px; padding: 2px 6px; }
+    .history-row .h-detail { font-size: 11px; }
+    .ranking-header { flex-direction: column; align-items: stretch; }
+    .year-picker { flex-direction: row; align-items: center; }
+  }
+
+  /* Popup form styles for the Win-the-Lotto and Edit-Points modals */
+  .modal .form-row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .modal .form-row label { font-size: 12px; font-weight: 700; color: var(--navy); letter-spacing: 0.5px; text-transform: uppercase; }
+  .modal .form-row select, .modal .form-row input {
+    padding: 10px 12px; border: 2px solid var(--gold-deep); border-radius: 8px;
+    font-family: var(--font-body); font-size: 14px; background: white;
+    width: 100%; margin: 0;
+  }
+  .modal .form-row select:focus, .modal .form-row input:focus { outline: 2px solid var(--red); }
+  .modal .form-info {
+    background: var(--cream); border: 1px dashed var(--gold-deep);
+    padding: 10px 14px; border-radius: 8px; margin: 4px 0 14px;
+    font-size: 13px; color: var(--ink);
+  }
+  .modal .form-info b { color: var(--red); }
+  /* Multi-select prize checkboxes for Win the lotto */
+  .prize-checkboxes {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 260px; overflow-y: auto;
+    padding: 6px; border: 2px solid var(--gold-deep);
+    border-radius: 8px; background: white;
+  }
+  .prize-check {
+    display: grid; grid-template-columns: 22px 1fr auto;
+    gap: 10px; align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    border: 2px solid transparent;
+    background: var(--cream);
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .prize-check:hover { border-color: var(--gold-deep); }
+  .prize-check input[type="checkbox"] {
+    width: 18px; height: 18px; cursor: pointer; margin: 0;
+    accent-color: var(--red);
+  }
+  .prize-check .prize-name {
+    color: var(--navy); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .prize-check .prize-pts {
+    background: var(--navy); color: var(--gold);
+    padding: 2px 8px; border-radius: 999px;
+    font-family: var(--font-display); font-size: 11px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .prize-check input[type="checkbox"]:checked ~ .prize-name { color: var(--red); }
+  .prize-check:has(input[type="checkbox"]:checked) {
+    background: linear-gradient(180deg, #fff37a, #ffe9a8);
+    border-color: var(--gold-deep);
+  }
+  .form-row-block { display: block; margin-bottom: 12px; }
+  .form-row-block > label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+
   .modal-overlay { position: fixed; inset: 0; background: rgba(20, 12, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
   .modal-overlay.show { display: flex; }
   .modal { background: var(--cream); border-radius: var(--radius); padding: 24px; max-width: 460px; width: 100%; box-shadow: var(--shadow-lg); border: 3px solid var(--gold); }
@@ -517,6 +740,7 @@
         <button class="tab active" data-view="home">HOME</button>
         <button class="tab admin-only locked" data-view="backoffice">BACKOFFICE</button>
         <button class="tab" data-view="history">HISTORY</button>
+        <button class="tab" data-view="player-ranking">PLAYER&nbsp;RANKING</button>
       </nav>
       <button class="btn-auth" id="btn-auth">LOG-IN</button>
     </div>
@@ -592,6 +816,25 @@
       </div>
     </div>
   </section>
+
+  <section id="view-player-ranking" class="hidden">
+    <div class="ranking-list">
+      <div class="ranking-header">
+        <div>
+          <h3>Player Ranking</h3>
+          <div class="sub">All players sorted by all-time total points. Click a player to see their point history.</div>
+        </div>
+        <div class="year-picker">
+          <label for="year-select">History year</label>
+          <select id="year-select"></select>
+        </div>
+      </div>
+      <div class="demo-banner">
+        <b>DEMO PREVIEW</b> &nbsp;·&nbsp; Playtest URL. Testing here does not affect the main site's data model beyond adding entries to a new <code>point_history</code> table.
+      </div>
+      <div id="player-ranking-host"></div>
+    </div>
+  </section>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -661,10 +904,22 @@ const State = {
   pictures: [],
   rounds: [],
   settings: { ...DEFAULT_SETTINGS },
+  pointHistory: [],       // full list of point_history entries (newest first)
+  expandedPlayerId: null, // which player's dropdown is currently open
+  selectedYear: null,     // year filter for point history (defaults to current year)
   isAdmin: false,
   loading: true,
   error: null,
 };
+
+const PRIZE_LABELS_FORM = [
+  { rank: 1, points: 600, label: "1st Prize (รางวัลที่หนึ่ง) — 600 pts" },
+  { rank: 2, points: 300, label: "2nd Prize Set 1 (รางวัลที่สอง ชุดที่ 1) — 300 pts" },
+  { rank: 3, points: 300, label: "2nd Prize Set 2 (รางวัลที่สอง ชุดที่ 2) — 300 pts" },
+  { rank: 4, points: 100, label: "3rd Prize Set 1 (รางวัลที่สาม ชุดที่ 1) — 100 pts" },
+  { rank: 5, points: 100, label: "3rd Prize Set 2 (รางวัลที่สาม ชุดที่ 2) — 100 pts" },
+  { rank: 6, points: 100, label: "3rd Prize Set 3 (รางวัลที่สาม ชุดที่ 3) — 100 pts" },
+];
 
 /* ---------- Helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -877,6 +1132,28 @@ const Store = {
     const { error } = await sb.from("rounds").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) throw error;
   },
+  /* ----- V2.2: point_history for the Player Ranking feature ----- */
+  async listPointHistory() {
+    const { data, error } = await sb.from("point_history")
+      .select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+  async addPointEntry({ player_id, player_name_snapshot, delta, type, round_id, round_created_at, prize_rank, note }) {
+    const { data, error } = await sb.from("point_history").insert({
+      player_id, player_name_snapshot, delta, type,
+      round_id: round_id || null,
+      round_created_at: round_created_at || null,
+      prize_rank: prize_rank || null,
+      note: note || null,
+    }).select().single();
+    if (error) throw error;
+    return data;
+  },
+  async deletePointEntry(id) {
+    const { error } = await sb.from("point_history").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
 
 /* ---------- Realtime ---------- */
@@ -896,6 +1173,9 @@ async function subscribeAll() {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, async () => {
       try { State.settings = await Store.listSettings(); render(); } catch (e) { console.error(e); }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "point_history" }, async () => {
+      try { State.pointHistory = await Store.listPointHistory(); render(); } catch (e) { console.error(e); }
     })
     .subscribe();
 }
@@ -1038,6 +1318,7 @@ function setView(v) {
   $("#view-home").classList.toggle("hidden", v !== "home");
   $("#view-backoffice").classList.toggle("hidden", v !== "backoffice");
   $("#view-history").classList.toggle("hidden", v !== "history");
+  $("#view-player-ranking").classList.toggle("hidden", v !== "player-ranking");
   render();
 }
 
@@ -1045,7 +1326,8 @@ function render() {
   paintMarquee();
   if (currentView === "home") renderHome();
   else if (currentView === "backoffice") renderBackOffice();
-  else renderHistory();
+  else if (currentView === "history") renderHistory();
+  else if (currentView === "player-ranking") renderPlayerRanking();
 }
 
 function renderHome() {
@@ -1416,6 +1698,192 @@ function renderHistory() {
   }
 }
 
+/* ===== PLAYER RANKING (V2.2 demo) ===== */
+
+/**
+ * Build a rolled-up list of players from pictures + point_history.
+ * Deleted pictures still appear (with a "(picture removed)" marker) as long
+ * as they have at least one entry in point_history.
+ */
+function computePlayerRanking() {
+  // Totals across all years (all-time). Also carry the latest name-snapshot for deleted pictures.
+  const totals = new Map(); // player_id -> { total, latestSnapshotName, latestSnapshotAt }
+  for (const e of State.pointHistory) {
+    const cur = totals.get(e.player_id) || { total: 0, latestSnapshotName: e.player_name_snapshot, latestSnapshotAt: e.created_at };
+    cur.total += Number(e.delta) || 0;
+    if (new Date(e.created_at) > new Date(cur.latestSnapshotAt)) {
+      cur.latestSnapshotName = e.player_name_snapshot;
+      cur.latestSnapshotAt = e.created_at;
+    }
+    totals.set(e.player_id, cur);
+  }
+  const picById = new Map(State.pictures.map(p => [p.id, p]));
+
+  const rows = [];
+  // First, every current picture (even with 0 points).
+  for (const p of State.pictures) {
+    const t = totals.get(p.id);
+    rows.push({
+      id: p.id,
+      name: p.name,
+      imageUrl: p.imageUrl,
+      total: t ? t.total : 0,
+      removed: false,
+    });
+  }
+  // Then any player that has history but whose picture was deleted.
+  for (const [id, t] of totals.entries()) {
+    if (!picById.has(id)) {
+      rows.push({
+        id, name: t.latestSnapshotName || "(unknown)",
+        imageUrl: null, total: t.total, removed: true,
+      });
+    }
+  }
+  rows.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+  return rows;
+}
+
+function availableYears() {
+  const years = new Set();
+  const now = new Date().getFullYear();
+  years.add(now);
+  for (const e of State.pointHistory) {
+    years.add(new Date(e.created_at).getFullYear());
+  }
+  return Array.from(years).sort((a, b) => b - a);
+}
+
+function renderPlayerRanking() {
+  const rows = computePlayerRanking();
+  const host = $("#player-ranking-host"); host.innerHTML = "";
+
+  // Populate year selector.
+  const yearSelect = $("#year-select");
+  const years = availableYears();
+  if (!yearSelect.dataset.wired) {
+    yearSelect.onchange = () => {
+      State.selectedYear = Number(yearSelect.value);
+      renderPlayerRanking();
+    };
+    yearSelect.dataset.wired = "1";
+  }
+  const prevValue = yearSelect.value;
+  yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+  if (!State.selectedYear || !years.includes(State.selectedYear)) State.selectedYear = years[0];
+  yearSelect.value = String(State.selectedYear);
+
+  if (rows.length === 0) {
+    host.innerHTML = `<div class="history-empty" style="padding:32px; text-align:center; color:var(--muted);">
+      No players yet. Add pictures in BackOffice and start playing to build a ranking.
+    </div>`;
+    return;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const rankCls = i === 0 ? "" : (i === 1 ? "r2" : (i === 2 ? "r3" : "rN"));
+    const isExpanded = State.expandedPlayerId === r.id;
+
+    const row = document.createElement("div");
+    row.className = "player-row" + (isExpanded ? " expanded" : "");
+    row.dataset.playerId = r.id;
+    row.innerHTML = `
+      <div class="rank-ball ${rankCls}">${i + 1}</div>
+      <div class="thumb">${r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="">` : "—"}</div>
+      <div class="name">
+        ${escapeHtml(r.name)}
+        ${r.removed ? '<span class="tag-removed">removed</span>' : ""}
+      </div>
+      <div class="points-cell">
+        <div class="value">${r.total.toLocaleString()}</div>
+        <div class="label">points</div>
+      </div>
+      <div class="chevron">▾</div>`;
+    row.onclick = () => togglePlayerRow(r.id);
+    host.appendChild(row);
+
+    if (isExpanded) {
+      host.appendChild(buildPlayerDropdown(r));
+    }
+  }
+}
+
+function togglePlayerRow(playerId) {
+  if (State.expandedPlayerId === playerId) State.expandedPlayerId = null;
+  else State.expandedPlayerId = playerId;
+  renderPlayerRanking();
+}
+
+function buildPlayerDropdown(player) {
+  const drop = document.createElement("div");
+  drop.className = "player-dropdown";
+  const year = State.selectedYear;
+
+  // Filter history for this player, in the selected year, newest first.
+  const entries = State.pointHistory
+    .filter(e => e.player_id === player.id)
+    .filter(e => new Date(e.created_at).getFullYear() === year);
+
+  let adminHtml = "";
+  if (State.isAdmin) {
+    adminHtml = `
+      <div class="dropdown-admin-actions">
+        <button class="btn btn-primary" data-win="${player.id}"><span class="icon-ball">★</span> Win the lotto</button>
+        <button class="btn btn-blue" data-edit="${player.id}">✎ Edit points</button>
+      </div>`;
+  }
+
+  drop.innerHTML = `
+    ${adminHtml}
+    <div class="history-year-title">
+      Point history <span class="year-chip">${year}</span>
+    </div>
+    ${entries.length === 0
+      ? `<div class="history-empty">No entries in ${year} for this player.</div>`
+      : entries.map(renderHistoryRow).join("")
+    }`;
+
+  if (State.isAdmin) {
+    drop.querySelector(`[data-win="${player.id}"]`).onclick = (e) => {
+      e.stopPropagation();
+      openWinTheLotto(player);
+    };
+    drop.querySelector(`[data-edit="${player.id}"]`).onclick = (e) => {
+      e.stopPropagation();
+      openEditPoints(player);
+    };
+  }
+  // Prevent bubbling clicks inside the dropdown from re-toggling the parent row.
+  drop.onclick = (e) => e.stopPropagation();
+  return drop;
+}
+
+function renderHistoryRow(e) {
+  const dt = new Date(e.created_at);
+  const dateStr = dt.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const typeCls = e.type === "lotto_win" ? "lotto" : "manual";
+  const typeText = e.type === "lotto_win" ? "Lotto Win" : "Manual";
+  let detail = "";
+  if (e.type === "lotto_win") {
+    const roundDate = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "(round unknown)";
+    const prizeInfo = PRIZE_LABELS_FORM.find(x => x.rank === Number(e.prize_rank));
+    const prizeName = prizeInfo ? prizeInfo.label.replace(/\s—.*/, "") : `Prize #${e.prize_rank}`;
+    detail = `<div>${escapeHtml(prizeName)}</div><div class="note">Round: ${escapeHtml(roundDate)}</div>`;
+  } else {
+    detail = `<div>Admin adjustment</div>${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}`;
+  }
+  const deltaCls = Number(e.delta) >= 0 ? "pos" : "neg";
+  const deltaText = (Number(e.delta) >= 0 ? "+" : "") + Number(e.delta).toLocaleString();
+  return `
+    <div class="history-row">
+      <div class="h-date">${dateStr}</div>
+      <div class="h-type ${typeCls}">${typeText}</div>
+      <div class="h-detail">${detail}</div>
+      <div class="h-delta ${deltaCls}">${deltaText}</div>
+    </div>`;
+}
+
 /* ---------- Actions ---------- */
 async function handlePlay() {
   if (!State.isAdmin) { openLoginModal(); return; }
@@ -1648,6 +2116,155 @@ async function handleResetMessages() {
   } catch (e) { console.error(e); toast("Reset failed: " + e.message, "error"); }
 }
 
+/* ===== Admin popups for Player Ranking ===== */
+async function openWinTheLotto(player) {
+  if (!State.isAdmin) return;
+  const rounds = State.rounds || [];
+  if (rounds.length === 0) {
+    toast("No rounds have been played yet. Play at least one round first.", "error");
+    return;
+  }
+  const roundOptions = rounds.map((r, idx) => {
+    const d = new Date(r.timestamp || r.created_at || Date.now());
+    const label = d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return `<option value="${r.id}" data-created="${r.timestamp || r.created_at}">${label}${idx === 0 ? " (latest)" : ""}</option>`;
+  }).join("");
+  const prizeCheckboxes = PRIZE_LABELS_FORM.map(p => {
+    // Split "1st Prize (รางวัลที่หนึ่ง) — 600 pts" into the name portion and drop the "— … pts" tail
+    // because points are already shown in the pill on the right.
+    const name = p.label.replace(/\s—.*$/, "");
+    return `
+      <label class="prize-check">
+        <input type="checkbox" data-rank="${p.rank}" data-points="${p.points}" />
+        <span class="prize-name">${escapeHtml(name)}</span>
+        <span class="prize-pts">${p.points} pts</span>
+      </label>`;
+  }).join("");
+
+  const ok = await modal({
+    title: `Win the lotto — ${player.name}`,
+    html: `
+      <div class="form-info">
+        Award <b>${escapeHtml(player.name)}</b> one or more prizes from a past round. Tick every prize they won — the system auto-picks the latest round; you can change it to any round in history.
+      </div>
+      <div class="form-row">
+        <label for="win-round">Round</label>
+        <select id="win-round">${roundOptions}</select>
+      </div>
+      <div class="form-row-block">
+        <label>Prizes (tick one or more)</label>
+        <div class="prize-checkboxes" id="win-prize-list">
+          ${prizeCheckboxes}
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="win-note">Note (optional)</label>
+        <input type="text" id="win-note" maxlength="120" placeholder="e.g., special draw for October event" />
+      </div>
+      <div class="form-info">
+        Selected: <b id="win-count">0 prize(s)</b> &nbsp;·&nbsp; Total points: <b id="win-preview">0</b>
+      </div>
+      <div class="error" id="win-err"></div>`,
+    confirmText: "Award prize(s)",
+    onConfirm: async (m) => {
+      const chosenRoundId = m.querySelector("#win-round").value;
+      const sel = m.querySelector("#win-round").selectedOptions[0];
+      const chosenRoundCreatedAt = sel ? sel.dataset.created : null;
+      const chosenNote = m.querySelector("#win-note").value.trim();
+      const checked = Array.from(m.querySelectorAll("#win-prize-list input[type='checkbox']:checked"))
+        .map(inp => ({ rank: Number(inp.dataset.rank), points: Number(inp.dataset.points) }));
+      const err = m.querySelector("#win-err");
+      if (checked.length === 0) {
+        err.textContent = "Pick at least one prize before awarding.";
+        return false;
+      }
+      try {
+        // Create one point_history entry per checked prize, all linked to the same round.
+        for (const p of checked) {
+          await Store.addPointEntry({
+            player_id: player.id,
+            player_name_snapshot: player.name,
+            delta: p.points,
+            type: "lotto_win",
+            round_id: chosenRoundId,
+            round_created_at: chosenRoundCreatedAt,
+            prize_rank: p.rank,
+            note: chosenNote || null,
+          });
+        }
+        const total = checked.reduce((s, p) => s + p.points, 0);
+        toast(`${player.name} awarded ${checked.length} prize${checked.length === 1 ? "" : "s"} · ${total} pts`, "success");
+      } catch (e) {
+        err.textContent = "Save failed: " + e.message;
+        return false;
+      }
+    },
+  });
+
+  // Wire the live "selected count / total points" preview after the modal DOM is inserted.
+  setTimeout(() => {
+    const list = document.querySelector("#win-prize-list");
+    const preview = document.querySelector("#win-preview");
+    const countEl = document.querySelector("#win-count");
+    if (list && preview && countEl) {
+      const update = () => {
+        const checked = Array.from(list.querySelectorAll("input[type='checkbox']:checked"));
+        const total = checked.reduce((s, inp) => s + Number(inp.dataset.points), 0);
+        preview.textContent = total.toLocaleString();
+        countEl.textContent = `${checked.length} prize${checked.length === 1 ? "" : "s"}`;
+      };
+      list.addEventListener("change", update);
+      update();
+    }
+  }, 30);
+}
+
+async function openEditPoints(player) {
+  if (!State.isAdmin) return;
+  let delta = 0;
+  let note = "";
+  const ok = await modal({
+    title: `Edit points — ${player.name}`,
+    html: `
+      <div class="form-info">
+        Enter a signed change. <b>+50</b> adds 50 points; <b>-20</b> removes 20. The change is logged as a Manual entry in the player's point history.
+      </div>
+      <div class="form-row">
+        <label for="edit-delta">Delta</label>
+        <input type="number" id="edit-delta" step="1" placeholder="e.g., +50 or -20" />
+      </div>
+      <div class="form-row">
+        <label for="edit-note">Note (optional)</label>
+        <input type="text" id="edit-note" maxlength="120" placeholder="Reason for the adjustment" />
+      </div>
+      <div class="error" id="edit-err"></div>`,
+    confirmText: "Apply change",
+    onConfirm: async (m) => {
+      const raw = m.querySelector("#edit-delta").value.trim();
+      delta = Math.round(Number(raw));
+      note = m.querySelector("#edit-note").value.trim();
+      const err = m.querySelector("#edit-err");
+      if (!raw || Number.isNaN(delta) || delta === 0) {
+        err.textContent = "Enter a non-zero integer (positive or negative).";
+        return false;
+      }
+      try {
+        await Store.addPointEntry({
+          player_id: player.id,
+          player_name_snapshot: player.name,
+          delta,
+          type: "manual_edit",
+          note: note || null,
+        });
+        toast(`${player.name}: ${delta >= 0 ? "+" : ""}${delta} pts`, "success");
+      } catch (e) {
+        err.textContent = "Save failed: " + e.message;
+        return false;
+      }
+    },
+  });
+}
+
 /* ---------- Wiring ---------- */
 $$("#tabs .tab").forEach(t => t.onclick = () => setView(t.dataset.view));
 $("#btn-auth").onclick = () => { if (State.isAdmin) logout(); else openLoginModal(); };
@@ -1702,6 +2319,13 @@ async function boot() {
     State.pictures = await Store.listPictures();
     State.rounds = await Store.listRounds();
     State.settings = await Store.listSettings();
+    try { State.pointHistory = await Store.listPointHistory(); }
+    catch (e) {
+      // Table not created yet → keep going with empty history so the rest of the app still works.
+      console.warn("point_history not available yet; run the SQL migration in SETUP.md §6.1", e);
+      State.pointHistory = [];
+    }
+    State.selectedYear = new Date().getFullYear();
     State.loading = false;
     setStatus("Live", "success");
     setTimeout(hideStatus, 2200);
