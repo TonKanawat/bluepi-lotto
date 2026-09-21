@@ -553,6 +553,51 @@
     color: var(--muted); text-align: center; padding: 18px;
     font-style: italic; font-size: 13px;
   }
+  .month-tabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin: 6px 0 14px; padding: 8px;
+    background: var(--cream);
+    border: 1px solid var(--gold-deep);
+    border-radius: 10px;
+  }
+  .month-tab {
+    position: relative;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: var(--font-display);
+    font-size: 10px; letter-spacing: 0.5px;
+    color: #a08c60;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    min-width: 42px;
+    text-align: center;
+    transition: background 0.12s, color 0.12s;
+  }
+  .month-tab.has-entries {
+    color: var(--navy);
+    background: rgba(255,255,255,0.75);
+  }
+  .month-tab:hover:not(.active) {
+    background: rgba(255,255,255,1);
+    color: var(--red);
+  }
+  .month-tab.active {
+    background: linear-gradient(180deg, var(--red), var(--red-deep));
+    color: white;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 4px rgba(209,33,40,0.3);
+  }
+  .month-tab .count {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 15px; height: 15px; padding: 0 4px;
+    background: var(--gold); color: var(--navy-deep);
+    border: 1.5px solid var(--navy);
+    border-radius: 999px;
+    font-family: var(--font-display); font-size: 8px;
+    display: grid; place-items: center;
+    line-height: 1;
+  }
+  .month-tab.active .count { background: var(--gold); color: var(--red-deep); border-color: white; }
   .history-row {
     display: grid; grid-template-columns: 140px 100px 1fr 90px;
     gap: 12px; align-items: center;
@@ -904,10 +949,14 @@ const State = {
   pointHistory: [],       // full list of point_history entries (newest first)
   expandedPlayerId: null, // which player's dropdown is currently open
   selectedYear: null,     // year filter for point history (defaults to current year)
+  selectedMonth: null,    // 0-11 month filter inside a year (defaults to current month)
   isAdmin: false,
   loading: true,
   error: null,
 };
+
+const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH_LONG  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const PRIZE_LABELS_FORM = [
   { rank: 1, points: 600, label: "1st Prize (รางวัลที่หนึ่ง) — 600 pts" },
@@ -1816,11 +1865,23 @@ function buildPlayerDropdown(player) {
   const drop = document.createElement("div");
   drop.className = "player-dropdown";
   const year = State.selectedYear;
+  const month = State.selectedMonth;
 
-  // Filter history for this player, in the selected year, newest first.
+  // Count this player's entries per month in the selected year for the tab badges.
+  const monthCounts = new Array(12).fill(0);
+  for (const e of State.pointHistory) {
+    if (e.player_id !== player.id) continue;
+    const d = new Date(e.created_at);
+    if (d.getFullYear() === year) monthCounts[d.getMonth()]++;
+  }
+
+  // Filter history for this player, in the selected year AND month, newest first.
   const entries = State.pointHistory
     .filter(e => e.player_id === player.id)
-    .filter(e => new Date(e.created_at).getFullYear() === year);
+    .filter(e => {
+      const d = new Date(e.created_at);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
 
   let adminHtml = "";
   if (State.isAdmin) {
@@ -1831,13 +1892,26 @@ function buildPlayerDropdown(player) {
       </div>`;
   }
 
+  const monthTabsHtml = `
+    <div class="month-tabs" role="tablist" aria-label="Filter history by month">
+      ${MONTH_SHORT.map((label, idx) => {
+        const count = monthCounts[idx];
+        const cls = "month-tab" +
+          (idx === month ? " active" : "") +
+          (count > 0 ? " has-entries" : "");
+        const badge = count > 0 ? `<span class="count">${count}</span>` : "";
+        return `<button class="${cls}" data-month="${idx}" aria-selected="${idx === month}" title="${MONTH_LONG[idx]} ${year}">${label}${badge}</button>`;
+      }).join("")}
+    </div>`;
+
   drop.innerHTML = `
     ${adminHtml}
     <div class="history-year-title">
-      Point history <span class="year-chip">${year}</span>
+      Point history <span class="year-chip">${MONTH_LONG[month]} ${year}</span>
     </div>
+    ${monthTabsHtml}
     ${entries.length === 0
-      ? `<div class="history-empty">No entries in ${year} for this player.</div>`
+      ? `<div class="history-empty">No entries in ${MONTH_LONG[month]} ${year} for this player.</div>`
       : entries.map(renderHistoryRow).join("")
     }`;
 
@@ -1851,6 +1925,14 @@ function buildPlayerDropdown(player) {
       openEditPoints(player);
     };
   }
+  // Wire month tab clicks — switching month re-renders the ranking so all badges refresh.
+  drop.querySelectorAll("[data-month]").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      State.selectedMonth = Number(btn.dataset.month);
+      renderPlayerRanking();
+    };
+  });
   // Prevent bubbling clicks inside the dropdown from re-toggling the parent row.
   drop.onclick = (e) => e.stopPropagation();
   return drop;
@@ -2323,6 +2405,7 @@ async function boot() {
       State.pointHistory = [];
     }
     State.selectedYear = new Date().getFullYear();
+    State.selectedMonth = new Date().getMonth();
     State.loading = false;
     setStatus("Live", "success");
     setTimeout(hideStatus, 2200);
