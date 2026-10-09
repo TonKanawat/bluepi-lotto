@@ -1212,14 +1212,22 @@ const Store = {
     if (error) throw error;
     return data || [];
   },
-  async addPointEntry({ player_id, player_name_snapshot, delta, type, round_id, round_created_at, prize_rank, note }) {
-    const { data, error } = await sb.from("point_history").insert({
+  async addPointEntry({ player_id, player_name_snapshot, delta, type, round_id, round_created_at, prize_rank, prize_winner_name, note }) {
+    const row = {
       player_id, player_name_snapshot, delta, type,
       round_id: round_id || null,
       round_created_at: round_created_at || null,
       prize_rank: prize_rank || null,
       note: note || null,
-    }).select().single();
+    };
+    if (prize_winner_name) row.prize_winner_name = prize_winner_name;
+    let { data, error } = await sb.from("point_history").insert(row).select().single();
+    // If the prize_winner_name column hasn't been added yet, save without it
+    // (the history view falls back to looking the name up from the round).
+    if (error && row.prize_winner_name && /prize_winner_name/i.test(error.message || "")) {
+      delete row.prize_winner_name;
+      ({ data, error } = await sb.from("point_history").insert(row).select().single());
+    }
     if (error) throw error;
     return data;
   },
@@ -1995,7 +2003,7 @@ function renderHistoryRow(e) {
   if (e.type === "lotto_win") {
     const roundDate = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "(round unknown)";
     const prizeInfo = PRIZE_LABELS_FORM.find(x => x.rank === Number(e.prize_rank));
-    const prizeName = prizeInfo ? prizeInfo.label.replace(/\s—.*/, "") : `Prize #${e.prize_rank}`;
+    const prizeName = prizeLabelWithWinner(e.prize_rank, entryWinnerName(e));
     detail = `<div>${escapeHtml(prizeName)}</div><div class="note">Round: ${escapeHtml(roundDate)}</div>`;
   } else {
     detail = `<div>Admin adjustment</div>${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}`;
@@ -2024,11 +2032,28 @@ function renderHistoryRow(e) {
 }
 
 /* ===== Revoke / Restore a point_history entry (admin only) ===== */
+/* ===== Prize ↔ winner helpers ===== */
+/** Name of the picture that won `rank` (1-6) in a given round, or "" if unknown. */
+function prizeWinnerName(roundId, rank) {
+  const r = (State.rounds || []).find(x => x.id === roundId);
+  const w = r && (r.winners || [])[Number(rank) - 1];
+  return (w && w.name) || "";
+}
+/** Winner name for a history entry: saved snapshot first, otherwise look it up from the round. */
+function entryWinnerName(e) {
+  return e.prize_winner_name || prizeWinnerName(e.round_id, e.prize_rank);
+}
+/** "1st Prize (รางวัลที่หนึ่ง) — Website" (or just the prize name if the winner is unknown). */
+function prizeLabelWithWinner(rank, winnerName) {
+  const p = PRIZE_LABELS_FORM.find(x => x.rank === Number(rank));
+  const base = p ? p.label.replace(/\s—.*$/, "") : `Prize #${rank}`;
+  return winnerName ? `${base} — ${winnerName}` : base;
+}
+
 function describeEntry(e) {
   if (e.type === "lotto_win") {
-    const p = PRIZE_LABELS_FORM.find(x => x.rank === Number(e.prize_rank));
     const round = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "unknown round";
-    return `${p ? p.label.replace(/\s—.*/, "") : "Prize #" + e.prize_rank} (round ${round})`;
+    return `${prizeLabelWithWinner(e.prize_rank, entryWinnerName(e))} (round ${round})`;
   }
   return `Manual adjustment${e.note ? ` — "${e.note}"` : ""}`;
 }
@@ -2347,19 +2372,21 @@ async function openWinTheLotto(player) {
     const label = d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
     return `<option value="${r.id}" data-created="${r.timestamp || r.created_at}">${label}${idx === 0 ? " (latest)" : ""}</option>`;
   }).join("");
+  // Each prize line shows who won that slot in the selected round, e.g. "1st Prize (รางวัลที่หนึ่ง) — Website".
+  // Labels are refreshed whenever the Round dropdown changes (see wiring below).
+  const initialRoundId = rounds[0].id;
   const prizeCheckboxes = PRIZE_LABELS_FORM.map(p => {
-    // Split "1st Prize (รางวัลที่หนึ่ง) — 600 pts" into the name portion and drop the "— … pts" tail
-    // because points are already shown in the pill on the right.
-    const name = p.label.replace(/\s—.*$/, "");
+    const winner = prizeWinnerName(initialRoundId, p.rank);
     return `
       <label class="prize-check">
         <input type="checkbox" data-rank="${p.rank}" data-points="${p.points}" />
-        <span class="prize-name">${escapeHtml(name)}</span>
+        <span class="prize-name" data-prize-label="${p.rank}">${escapeHtml(prizeLabelWithWinner(p.rank, winner))}</span>
         <span class="prize-pts">${p.points} pts</span>
       </label>`;
   }).join("");
 
-  const ok = await modal({
+  // Don't await yet — the form must be wired up while the popup is open.
+  const modalPromise = modal({
     title: `Win the lotto — ${player.name}`,
     html: `
       <div class="form-info">
@@ -2407,6 +2434,7 @@ async function openWinTheLotto(player) {
             round_id: chosenRoundId,
             round_created_at: chosenRoundCreatedAt,
             prize_rank: p.rank,
+            prize_winner_name: prizeWinnerName(chosenRoundId, p.rank) || null,
             note: chosenNote || null,
           });
         }
@@ -2419,22 +2447,35 @@ async function openWinTheLotto(player) {
     },
   });
 
-  // Wire the live "selected count / total points" preview after the modal DOM is inserted.
-  setTimeout(() => {
-    const list = document.querySelector("#win-prize-list");
-    const preview = document.querySelector("#win-preview");
-    const countEl = document.querySelector("#win-count");
-    if (list && preview && countEl) {
-      const update = () => {
-        const checked = Array.from(list.querySelectorAll("input[type='checkbox']:checked"));
-        const total = checked.reduce((s, inp) => s + Number(inp.dataset.points), 0);
-        preview.textContent = total.toLocaleString();
-        countEl.textContent = `${checked.length} prize${checked.length === 1 ? "" : "s"}`;
-      };
-      list.addEventListener("change", update);
-      update();
-    }
-  }, 30);
+  wireWinTheLottoForm();
+  await modalPromise;
+}
+
+/** Live wiring for the Win-the-lotto popup (runs while the popup is open). */
+function wireWinTheLottoForm() {
+  const list = document.querySelector("#win-prize-list");
+  const preview = document.querySelector("#win-preview");
+  const countEl = document.querySelector("#win-count");
+  const roundSel = document.querySelector("#win-round");
+  if (list && preview && countEl) {
+    const update = () => {
+      const checked = Array.from(list.querySelectorAll("input[type='checkbox']:checked"));
+      const total = checked.reduce((s, inp) => s + Number(inp.dataset.points), 0);
+      preview.textContent = total.toLocaleString();
+      countEl.textContent = `${checked.length} prize${checked.length === 1 ? "" : "s"}`;
+    };
+    list.addEventListener("change", update);
+    update();
+  }
+  if (roundSel && list) {
+    // Switching rounds refreshes each prize line with that round's winner.
+    roundSel.addEventListener("change", () => {
+      list.querySelectorAll("[data-prize-label]").forEach(span => {
+        const rank = Number(span.dataset.prizeLabel);
+        span.textContent = prizeLabelWithWinner(rank, prizeWinnerName(roundSel.value, rank));
+      });
+    });
+  }
 }
 
 async function openEditPoints(player) {
