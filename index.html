@@ -622,6 +622,33 @@
   }
   .history-row .h-delta.pos { color: var(--green-deep); }
   .history-row .h-delta.neg { color: var(--red-deep); }
+  /* Revoke / Restore (admin) */
+  .history-row.with-actions { grid-template-columns: 140px 100px 1fr 90px 92px; }
+  .history-row .h-actions { text-align: right; }
+  .h-action {
+    border: 1.5px solid; background: white; cursor: pointer;
+    padding: 4px 9px; border-radius: 999px;
+    font-family: var(--font-display); font-size: 9px; letter-spacing: 0.5px;
+    white-space: nowrap; transition: background 0.12s, color 0.12s;
+  }
+  .h-action.revoke { color: var(--red); border-color: var(--red); }
+  .h-action.revoke:hover { background: var(--red); color: white; }
+  .h-action.restore { color: var(--blue-deep); border-color: var(--blue-deep); }
+  .h-action.restore:hover { background: var(--blue-deep); color: white; }
+  .history-row.revoked { background: repeating-linear-gradient(135deg, #faf5ea 0 8px, #f4ecd9 8px 16px); border-radius: 6px; }
+  .history-row.revoked .h-date,
+  .history-row.revoked .h-type,
+  .history-row.revoked .h-detail > div:not(.revoked-info) { opacity: 0.55; }
+  .history-row.revoked .h-delta { text-decoration: line-through; color: var(--muted); }
+  .revoked-info { margin-top: 3px; font-size: 11px; color: var(--red-deep); }
+  .revoked-tag {
+    background: var(--red); color: white; font-family: var(--font-display);
+    font-size: 9px; letter-spacing: 0.5px; padding: 1px 6px; border-radius: 4px;
+  }
+  @media (max-width: 720px) {
+    .history-row.with-actions { grid-template-columns: 80px 70px 1fr 60px; }
+    .history-row.with-actions .h-actions { grid-column: 1 / -1; text-align: right; }
+  }
 
   @media (max-width: 720px) {
     .player-row { grid-template-columns: 36px 44px 1fr 100px 16px; padding: 8px 10px; gap: 8px; }
@@ -1196,6 +1223,20 @@ const Store = {
     if (error) throw error;
     return data;
   },
+  /** Mark an entry as revoked (kept for audit, excluded from totals). */
+  async revokePointEntry(id, note) {
+    const { error } = await sb.from("point_history")
+      .update({ revoked_at: new Date().toISOString(), revoked_note: note || null })
+      .eq("id", id);
+    if (error) throw error;
+  },
+  /** Undo a revoke — the entry counts toward the total again. */
+  async restorePointEntry(id) {
+    const { error } = await sb.from("point_history")
+      .update({ revoked_at: null, revoked_note: null })
+      .eq("id", id);
+    if (error) throw error;
+  },
   async deletePointEntry(id) {
     const { error } = await sb.from("point_history").delete().eq("id", id);
     if (error) throw error;
@@ -1756,7 +1797,8 @@ function computePlayerRanking() {
   const totals = new Map(); // player_id -> { total, latestSnapshotName, latestSnapshotAt }
   for (const e of State.pointHistory) {
     const cur = totals.get(e.player_id) || { total: 0, latestSnapshotName: e.player_name_snapshot, latestSnapshotAt: e.created_at };
-    cur.total += Number(e.delta) || 0;
+    // Revoked entries stay in history for audit but no longer count toward the total.
+    if (!e.revoked_at) cur.total += Number(e.delta) || 0;
     if (new Date(e.created_at) > new Date(cur.latestSnapshotAt)) {
       cur.latestSnapshotName = e.player_name_snapshot;
       cur.latestSnapshotAt = e.created_at;
@@ -1924,6 +1966,12 @@ function buildPlayerDropdown(player) {
       e.stopPropagation();
       openEditPoints(player);
     };
+    drop.querySelectorAll("[data-revoke]").forEach(btn => {
+      btn.onclick = (ev) => { ev.stopPropagation(); openRevokeEntry(btn.dataset.revoke); };
+    });
+    drop.querySelectorAll("[data-restore]").forEach(btn => {
+      btn.onclick = (ev) => { ev.stopPropagation(); openRestoreEntry(btn.dataset.restore); };
+    });
   }
   // Wire month tab clicks — switching month re-renders the ranking so all badges refresh.
   drop.querySelectorAll("[data-month]").forEach(btn => {
@@ -1952,15 +2000,106 @@ function renderHistoryRow(e) {
   } else {
     detail = `<div>Admin adjustment</div>${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}`;
   }
+  const revoked = !!e.revoked_at;
+  if (revoked) {
+    const rDate = new Date(e.revoked_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    detail += `<div class="revoked-info"><span class="revoked-tag">REVOKED</span> ${escapeHtml(rDate)}${e.revoked_note ? ` · ${escapeHtml(e.revoked_note)}` : ""}</div>`;
+  }
   const deltaCls = Number(e.delta) >= 0 ? "pos" : "neg";
   const deltaText = (Number(e.delta) >= 0 ? "+" : "") + Number(e.delta).toLocaleString();
+  let actionHtml = "";
+  if (State.isAdmin) {
+    actionHtml = revoked
+      ? `<button class="h-action restore" data-restore="${e.id}" title="Count this entry again">↺ Restore</button>`
+      : `<button class="h-action revoke" data-revoke="${e.id}" title="Revoke this entry">✕ Revoke</button>`;
+  }
   return `
-    <div class="history-row">
+    <div class="history-row${revoked ? " revoked" : ""}${State.isAdmin ? " with-actions" : ""}">
       <div class="h-date">${dateStr}</div>
       <div class="h-type ${typeCls}">${typeText}</div>
       <div class="h-detail">${detail}</div>
       <div class="h-delta ${deltaCls}">${deltaText}</div>
+      ${State.isAdmin ? `<div class="h-actions">${actionHtml}</div>` : ""}
     </div>`;
+}
+
+/* ===== Revoke / Restore a point_history entry (admin only) ===== */
+function describeEntry(e) {
+  if (e.type === "lotto_win") {
+    const p = PRIZE_LABELS_FORM.find(x => x.rank === Number(e.prize_rank));
+    const round = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "unknown round";
+    return `${p ? p.label.replace(/\s—.*/, "") : "Prize #" + e.prize_rank} (round ${round})`;
+  }
+  return `Manual adjustment${e.note ? ` — "${e.note}"` : ""}`;
+}
+
+function revokeErrorMessage(err) {
+  const msg = (err && err.message) || String(err);
+  if (/revoked_at|revoked_note|schema cache|column/i.test(msg)) {
+    return "The database isn't ready for revokes yet. Run the ALTER TABLE snippet (adds revoked_at / revoked_note) in the Supabase SQL Editor, then try again.";
+  }
+  return "Save failed: " + msg;
+}
+
+async function openRevokeEntry(entryId) {
+  if (!State.isAdmin) return;
+  const e = State.pointHistory.find(x => x.id === entryId);
+  if (!e || e.revoked_at) return;
+  const deltaText = (Number(e.delta) >= 0 ? "+" : "") + Number(e.delta).toLocaleString();
+  await modal({
+    title: `Revoke entry — ${e.player_name_snapshot}`,
+    html: `
+      <div class="form-info">
+        <b>${escapeHtml(deltaText)} pts</b> · ${escapeHtml(describeEntry(e))}<br>
+        <span style="color:var(--muted); font-size:12px;">Recorded ${escapeHtml(new Date(e.created_at).toLocaleString())}</span>
+      </div>
+      <p>The entry stays in the history marked <b>REVOKED</b>, and its points are removed from ${escapeHtml(e.player_name_snapshot)}'s total. You can restore it later if needed.</p>
+      <div class="form-row">
+        <label for="revoke-note">Reason (optional)</label>
+        <input type="text" id="revoke-note" maxlength="120" placeholder="e.g., awarded to wrong player" />
+      </div>
+      <div class="error" id="revoke-err"></div>`,
+    confirmText: "Revoke",
+    danger: true,
+    onConfirm: async (m) => {
+      const note = m.querySelector("#revoke-note").value.trim();
+      try {
+        await Store.revokePointEntry(e.id, note);
+        State.pointHistory = await Store.listPointHistory();
+        renderPlayerRanking();
+        toast(`Revoked ${deltaText} pts from ${e.player_name_snapshot}`, "success");
+      } catch (err) {
+        m.querySelector("#revoke-err").textContent = revokeErrorMessage(err);
+        return false;
+      }
+    },
+  });
+}
+
+async function openRestoreEntry(entryId) {
+  if (!State.isAdmin) return;
+  const e = State.pointHistory.find(x => x.id === entryId);
+  if (!e || !e.revoked_at) return;
+  const deltaText = (Number(e.delta) >= 0 ? "+" : "") + Number(e.delta).toLocaleString();
+  await modal({
+    title: `Restore entry — ${e.player_name_snapshot}`,
+    html: `
+      <div class="form-info"><b>${escapeHtml(deltaText)} pts</b> · ${escapeHtml(describeEntry(e))}</div>
+      <p>This entry will count toward ${escapeHtml(e.player_name_snapshot)}'s total again.</p>
+      <div class="error" id="restore-err"></div>`,
+    confirmText: "Restore",
+    onConfirm: async (m) => {
+      try {
+        await Store.restorePointEntry(e.id);
+        State.pointHistory = await Store.listPointHistory();
+        renderPlayerRanking();
+        toast(`Restored ${deltaText} pts to ${e.player_name_snapshot}`, "success");
+      } catch (err) {
+        m.querySelector("#restore-err").textContent = revokeErrorMessage(err);
+        return false;
+      }
+    },
+  });
 }
 
 /* ---------- Actions ---------- */
