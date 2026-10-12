@@ -823,6 +823,14 @@
   .wallet-col .w-label { font-size: 9px; letter-spacing: 1px; }
   .wallet-col .w-count { font-size: 18px; }
   .wallet-col:hover { transform: translateY(-1px); }
+  .wallet-col .w-top { display: flex; align-items: baseline; gap: 6px; }
+  .wallet-col .w-caret { font-size: 9px; opacity: .7; }
+  .wallet-col .w-mix {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 4px; max-width: 132px; margin-top: 2px;
+    font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: 0; line-height: 1.15;
+  }
+  .wallet-col .w-mix span { background: rgba(255,255,255,.65); border-radius: 6px; padding: 0 4px; white-space: nowrap; }
+  .wallet-col .w-mix .none { background: none; opacity: .6; font-weight: 400; }
   .wallet-points {
     display: flex; align-items: baseline; gap: 4px; padding: 4px 12px; border-radius: 10px;
     background: var(--navy); color: var(--gold); font-family: var(--font-display); font-size: 18px;
@@ -1042,11 +1050,13 @@
       <div>bluePi&nbsp;Lotto</div>
       <!-- V3: Turbo stock + points balance (logged-in players only) -->
       <div class="wallet user-only locked" id="wallet">
-        <button class="wallet-col" data-wallet="turbo" title="Your Turbos">
-          <span class="w-label">TURBO</span><span class="w-count" id="w-turbo">0</span>
+        <button class="wallet-col" data-wallet="turbo" title="Your Turbos — click for details">
+          <span class="w-top"><span class="w-label">TURBO</span><span class="w-count" id="w-turbo">0</span><span class="w-caret">▼</span></span>
+          <span class="w-mix" id="w-turbo-mix"></span>
         </button>
-        <button class="wallet-col special" data-wallet="special" title="Your Special Turbos">
-          <span class="w-label">SPECIAL</span><span class="w-count" id="w-special">0</span>
+        <button class="wallet-col special" data-wallet="special" title="Your Special Turbos — click for details">
+          <span class="w-top"><span class="w-label">SPECIAL</span><span class="w-count" id="w-special">0</span><span class="w-caret">▼</span></span>
+          <span class="w-mix" id="w-special-mix"></span>
         </button>
         <div class="wallet-points" title="Your current points balance"><span id="w-points">0</span><small>PTS</small></div>
         <div class="wallet-pop hidden" id="wallet-pop"></div>
@@ -2510,6 +2520,16 @@ function renderWallet() {
   const count = kind => inv.filter(i => (shopItem(i.item_key) || {}).kind === kind).reduce((s, i) => s + i.qty, 0);
   $("#w-turbo").textContent = count("turbo");
   $("#w-special").textContent = count("special");
+  // Per-type breakdown right in the header, e.g. "1.25x ×1  2x ×1"
+  const own = Object.fromEntries(inv.map(i => [i.item_key, i.qty]));
+  const mix = kind => {
+    const rows = State.shopItems.filter(s => s.kind === kind && (own[s.key] || 0) > 0)
+      .sort((a, b) => Number(a.multiplier) - Number(b.multiplier))
+      .map(s => `<span>${multText(s.multiplier)} ×${own[s.key]}</span>`);
+    return rows.join("") || '<span class="none">none</span>';
+  };
+  $("#w-turbo-mix").innerHTML = mix("turbo");
+  $("#w-special-mix").innerHTML = mix("special");
   $("#w-points").textContent = myBalance().toLocaleString();
   const pop = $("#wallet-pop");
   if (!pop.classList.contains("hidden")) fillWalletPop(pop.dataset.kind);
