@@ -3163,7 +3163,7 @@ function renderRewards() {
       ${pending.length ? pending.map(c => `
         <div class="pending-row">
           <div><b>${escapeHtml(c.player_name_snapshot)}</b> wants <b>${escapeHtml(c.reward_name)}</b> · ${c.points.toLocaleString()} pts
-            <div class="c-note" style="color:var(--muted);font-size:11px">${new Date(c.created_at).toLocaleString()}</div></div>
+            <div class="c-note" style="color:var(--muted);font-size:11px">${fmtDMYTime(c.created_at)}</div></div>
           <div class="pr-actions">
             <button class="btn btn-primary" data-approve="${c.id}">Approve</button>
             <button class="btn btn-warn" data-reject="${c.id}">Reject</button>
@@ -3704,7 +3704,7 @@ async function openRevokeEntry(entryId) {
     html: `
       <div class="form-info">
         <b>${escapeHtml(deltaText)} pts</b> · ${escapeHtml(describeEntry(e))}<br>
-        <span style="color:var(--muted); font-size:12px;">Recorded ${escapeHtml(new Date(e.created_at).toLocaleString())}</span>
+        <span style="color:var(--muted); font-size:12px;">Recorded ${escapeHtml(fmtDMYTime(e.created_at))}</span>
       </div>
       <p>The entry stays in the history marked <b>REVOKED</b>, and its points are removed from ${escapeHtml(e.player_name_snapshot)}'s total. You can restore it later if needed.</p>
       <div class="form-row">
