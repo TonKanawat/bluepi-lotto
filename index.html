@@ -985,7 +985,7 @@
   .bet-row:last-child { border-bottom: 0; }
   /* Lottery Bet report (BackOffice) */
   /* BackOffice sub-navigation */
-  .bo-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 18px; padding: 8px; background: white; border: 2px solid var(--gold); border-radius: 16px; box-shadow: var(--shadow); }
+  .bo-tabs { position: sticky; top: calc(var(--header-h, 90px) + 8px); z-index: 45; display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 18px; padding: 8px; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 2px solid var(--gold); border-radius: 16px; box-shadow: var(--shadow); }
   .bo-tab { flex: 1 1 auto; border: 2px solid transparent; background: #fff8dc; color: var(--navy); border-radius: 12px; padding: 10px 14px; cursor: pointer; font-family: var(--font-display); letter-spacing: .5px; font-size: 12px; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background .15s, transform .1s; white-space: nowrap; }
   .bo-tab:hover { background: #fff0b8; transform: translateY(-1px); }
   .bo-tab.active { background: var(--navy); color: var(--gold); border-color: var(--gold); }
@@ -2506,11 +2506,27 @@ function renderPrizePodium(host) {
 }
 
 /* ===== BackOffice sub-sections ===== */
+// Keep the BackOffice section buttons stuck just below the (sticky) header while scrolling.
+(function trackHeaderHeight() {
+  const header = document.querySelector("header.topnav");
+  if (!header) return;
+  const setH = () => document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+  setH();
+  if (window.ResizeObserver) new ResizeObserver(setH).observe(header);
+  window.addEventListener("resize", setH);
+})();
 let boTab = "pictures";
 function setBoTab(name) {
+  const changed = boTab !== name;
   boTab = name;
   $$(".bo-tab").forEach(b => { const on = b.dataset.bo === name; b.classList.toggle("active", on); b.setAttribute("aria-selected", on); });
   $$(".bo-pane").forEach(p => p.classList.toggle("hidden", p.dataset.pane !== name));
+  // When switching sections after scrolling down, jump back to the top of the new section
+  const bar = $(".bo-tabs");
+  if (changed && bar && bar.getBoundingClientRect().top <= parseFloat(getComputedStyle(bar).top) + 1) {
+    const y = $("#view-backoffice").getBoundingClientRect().top + window.scrollY - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0) - 16;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  }
 }
 $$(".bo-tab").forEach(b => b.onclick = () => setBoTab(b.dataset.bo));
 function renderBoCounts() {
