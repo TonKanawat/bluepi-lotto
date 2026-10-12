@@ -1363,7 +1363,11 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 function round12(x) { return Math.round(x * 1e12) / 1e12; }
 function fmtPct(p) { const pct = p * 100; return pct < 0.1 ? pct.toFixed(3) + "%" : pct.toFixed(2) + "%"; }
-function fmtDate(ts) { const d = new Date(ts); return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+// Dates are shown as DD/MM/YY (times as 24-hour HH:MM)
+const pad2 = (n) => String(n).padStart(2, "0");
+function fmtDMY(ts) { const d = new Date(ts); return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${pad2(d.getFullYear() % 100)}`; }
+function fmtDMYTime(ts) { const d = new Date(ts); return `${fmtDMY(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function fmtDate(ts) { return fmtDMYTime(ts); }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
 function toast(message, kind = "default") {
@@ -2483,7 +2487,7 @@ function renderMembersPanel() {
   host.innerHTML = rows.map(m => {
     const url = picUrl(m.picture_id);
     const status = m.user_id
-      ? `<span class="m-status active">✓ Active${m.activated_at ? " since " + new Date(m.activated_at).toLocaleDateString() : ""}</span>`
+      ? `<span class="m-status active">✓ Active${m.activated_at ? " since " + fmtDMY(m.activated_at) : ""}</span>`
       : `<span class="m-status waiting">Waiting · code <span class="code">${escapeHtml(m.activation_code || "—")}</span></span>`;
     const isMe = State.me && m.email === State.me.email;
     return `
@@ -2935,7 +2939,7 @@ function renderBetWindow() {
   const last = myLastSettledBet();
   let lastHtml = "";
   if (last) {
-    const roundDate = last.updated_at ? new Date(last.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+    const roundDate = last.updated_at ? fmtDMY(last.updated_at) : "";
     const lines = (last.breakdown || []).map(x => {
       const label = (PRIZE_LABELS_FORM.find(p => p.rank === Number(x.prizeRank)) || {}).label || `Prize ${x.prizeRank}`;
       return `<li>Pick #${x.place} ${escapeHtml(picName(x.pictureId))} → ${escapeHtml(label.replace(/\s—.*$/, ""))}: <b>+${Number(x.points).toLocaleString()}</b>${Number(x.multiplier) !== 1 ? ` (×${Number(x.multiplier)})` : ""}</li>`;
@@ -3134,7 +3138,7 @@ function renderRewards() {
     </h4>
     ${yearClaims.length ? yearClaims.map(c => `
       <div class="claim-row${State.isAdmin ? " admin" : ""}">
-        <div class="c-date">${new Date(c.created_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+        <div class="c-date">${fmtDMYTime(c.created_at)}</div>
         ${State.isAdmin ? `<div><b>${escapeHtml(c.player_name_snapshot)}</b></div>` : ""}
         <div>${escapeHtml(c.reward_name)}${c.decided_note ? `<div class="c-note">${escapeHtml(c.decided_note)}</div>` : ""}</div>
         <div class="c-pts">${c.points.toLocaleString()}</div>
@@ -3249,7 +3253,7 @@ function renderOpenBetsPanel() {
         <div class="b-who">${escapeHtml(b.player_name_snapshot)}</div>
         <div>1. ${escapeHtml(picName(b.pick1))} · 2. ${escapeHtml(picName(b.pick2))} · 3. ${escapeHtml(picName(b.pick3))}</div>
         <div class="b-boost">${boosts.length ? escapeHtml(boosts.join(" + ")) : "—"}</div>
-        <div class="b-time">${new Date(b.updated_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+        <div class="b-time">${fmtDMYTime(b.updated_at)}</div>
       </div>`;
     }).join("");
 }
@@ -3494,7 +3498,7 @@ function buildPlayerDropdown(player) {
 
 function renderHistoryRow(e) {
   const dt = new Date(e.created_at);
-  const dateStr = dt.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const dateStr = fmtDMYTime(dt);
   const TYPE_UI = {
     lotto_win:      ["lotto",  "Lotto Win"],
     manual_edit:    ["manual", "Manual"],
@@ -3506,7 +3510,7 @@ function renderHistoryRow(e) {
   const [typeCls, typeText] = TYPE_UI[e.type] || ["manual", e.type];
   let detail = "";
   if (e.type === "lotto_win" || e.type === "bet_win") {
-    const roundDate = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "(round unknown)";
+    const roundDate = e.round_created_at ? fmtDMY(e.round_created_at) : "(round unknown)";
     const prizeName = prizeLabelWithWinner(e.prize_rank, entryWinnerName(e));
     detail = `<div>${escapeHtml(prizeName)}</div><div class="note">Round: ${escapeHtml(roundDate)}${e.type === "bet_win" && e.note ? " · " + escapeHtml(e.note) : ""}</div>`;
   } else if (e.type === "manual_edit") {
@@ -3516,7 +3520,7 @@ function renderHistoryRow(e) {
   }
   const revoked = !!e.revoked_at;
   if (revoked) {
-    const rDate = new Date(e.revoked_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const rDate = fmtDMYTime(e.revoked_at);
     detail += `<div class="revoked-info"><span class="revoked-tag">REVOKED</span> ${escapeHtml(rDate)}${e.revoked_note ? ` · ${escapeHtml(e.revoked_note)}` : ""}</div>`;
   }
   const deltaCls = Number(e.delta) >= 0 ? "pos" : "neg";
@@ -3560,7 +3564,7 @@ function prizeLabelWithWinner(rank, winnerName) {
 
 function describeEntry(e) {
   if (e.type === "lotto_win") {
-    const round = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "unknown round";
+    const round = e.round_created_at ? fmtDMY(e.round_created_at) : "unknown round";
     return `${prizeLabelWithWinner(e.prize_rank, entryWinnerName(e))} (round ${round})`;
   }
   return `Manual adjustment${e.note ? ` — "${e.note}"` : ""}`;
@@ -3919,7 +3923,7 @@ async function openWinTheLotto(player) {
   }
   const roundOptions = rounds.map((r, idx) => {
     const d = new Date(r.timestamp || r.created_at || Date.now());
-    const label = d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    const label = fmtDMY(d);
     return `<option value="${r.id}" data-created="${r.timestamp || r.created_at}">${label}${idx === 0 ? " (latest)" : ""}</option>`;
   }).join("");
   // Each prize line shows who won that slot in the selected round, e.g. "1st Prize (รางวัลที่หนึ่ง) — Website".
