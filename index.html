@@ -312,6 +312,7 @@
     100% { transform: scaleY(1.15) translateY(-1px); opacity: 1; }
   }
   .rank-card.hot { border-color: #ff6a00 !important; animation: fireGlow 1.1s ease-in-out infinite alternate; }
+  .rank-card.hot .rank-label { z-index: 6; }  /* keep "Rank N" readable above the flames */
   .rank-card.hot::before {          /* animated flame-coloured ring around the card */
     content: ""; position: absolute; inset: -9px; border-radius: 13px; padding: 5px; pointer-events: none; z-index: 3;
     background: linear-gradient(0deg, #ff2a00, #ff7b00, #ffd000, #ff7b00, #ff2a00, #ff7b00, #ffd000);
