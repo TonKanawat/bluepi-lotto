@@ -298,21 +298,18 @@
   .rank-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 4px 0; }
   .rank-card { background: white; border: 5px solid; border-radius: 8px; padding: 4px; position: relative; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform 0.2s; }
   .rank-card:hover { transform: translateY(-2px); }
-  /* ===== "Popular now" — top-5 pictures in open Lottery Bets: "Lava pulse" border + #rank badge ===== */
-  @keyframes lavaPulse {
-    0%, 100% { border-color: #a31400; box-shadow: 0 0 6px 1px rgba(163,20,0,.5), inset 0 0 8px rgba(255,90,0,.35); }
-    50%      { border-color: #ff9a00; box-shadow: 0 0 22px 6px rgba(255,120,0,.7), inset 0 0 14px rgba(255,170,0,.5); }
-  }
-  @keyframes lavaSweep { 0% { background-position: 120% 0; } 100% { background-position: -20% 0; } }
-  .rank-card.hot { animation: lavaPulse 1.8s ease-in-out infinite; }
-  .rank-card.hot::before {          /* bright shine sweeping along the molten border */
-    content: ""; position: absolute; inset: -5px; border-radius: 10px; padding: 5px; pointer-events: none; z-index: 3;
-    background: linear-gradient(110deg, transparent 35%, rgba(255,250,200,.95) 50%, transparent 65%);
-    background-size: 300% 100%; animation: lavaSweep 2.4s ease-in-out infinite;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);          mask-composite: exclude;
-  }
+  /* ===== "Popular now" — top-5 pictures in open Lottery Bets: cartoon "Fire frame" + #rank badge ===== */
+  .rank-row { isolation: isolate; }                 /* flames (z-index -1) stay behind the cards but above the stage */
+  .rank-card.hot { border-color: #ff7a00 !important; }
+  .rank-card.hot:hover { transform: none; }         /* a transform would pull the flames in front of the card */
   .rank-card.hot .rank-label { z-index: 6; }
+  .fire-frame { position: absolute; inset: -5px; z-index: -1; pointer-events: none; }   /* -5px = card border */
+  .fire-strip { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .fire-layer { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 0 100%; transform-origin: 50% 100%; will-change: transform; }
+  @keyframes fireScroll { to { background-position-x: var(--tile); } }
+  @keyframes fireFlick { 0% { transform: scaleY(.86); } 40% { transform: scaleY(1.08); } 70% { transform: scaleY(.95); } 100% { transform: scaleY(1.04); } }
+  @keyframes fireSpin { to { transform: rotate(360deg); } }
+  @keyframes firePuff { 0% { transform: scale(.94); } 50% { transform: scale(1.06); } 100% { transform: scale(.97); } }
   .hot-badge {
     position: absolute; top: -13px; left: -11px; z-index: 5; display: inline-flex; align-items: center; gap: 2px;
     background: linear-gradient(180deg, #ffb300, #ff5a00 55%, #d42000); color: white; border: 2px solid #fff3c4;
@@ -320,11 +317,14 @@
     box-shadow: 0 2px 6px rgba(160,30,0,.5); text-shadow: 0 1px 0 rgba(0,0,0,.25); white-space: nowrap;
   }
   .hot-badge.sm { position: static; font-size: 10px; padding: 0 7px 0 4px; border-width: 1px; box-shadow: none; }
-  .player-row .thumb.hot { animation: lavaPulse 1.8s ease-in-out infinite; }
+  .player-row .thumb.hot { border-color: #ff7a00; }
+  .player-row .thumb-wrap { isolation: isolate; }
+  .mini-fire { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; z-index: -1; pointer-events: none; animation: firePuff .5s ease-in-out infinite alternate; }
+  .mini-fire svg { width: 100%; height: 100%; display: block; animation: fireSpin 9s linear infinite; }
   .player-row .thumb-wrap { position: relative; display: inline-block; }
   .player-row .thumb-wrap .hot-badge { top: -8px; left: -12px; font-size: 10px; padding: 0 6px 0 4px; border-width: 1px; }
   @media (prefers-reduced-motion: reduce) {
-    .rank-card.hot, .rank-card.hot::before, .player-row .thumb.hot { animation: none; border-color: #ff6a00; }
+    .fire-layer, .mini-fire, .mini-fire svg { animation: none !important; }
   }
   .rank-row.top-row .rank-card { border-color: var(--gold); }
   .rank-row.bottom-row .rank-card { border-color: var(--red); }
@@ -2392,6 +2392,7 @@ function buildRankCard(pic, rank) {
   if (pop) {
     card.classList.add("hot");
     card.insertAdjacentHTML("beforeend", hotBadgeHtml(pop));
+    attachFireFrame(card);
   }
   const wrap = document.createElement("div"); wrap.className = "pic-wrap";
   if (pic) {
@@ -2560,6 +2561,91 @@ function computePopularity(rows) {
   return map;
 }
 function popOf(pictureId) { return State.popularity.get(pictureId) || null; }
+
+/* Cartoon "Fire frame": layered flame strips (dark red → orange → yellow core) on all four sides of a card.
+   Flames are original SVG shapes generated here, tiled along each edge, scrolling + flickering. */
+function _fireRng(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
+function _flamePath(w, h, n, minT, maxT, seed) {
+  const r = _fireRng(seed), base = h * 0.82, step = w / n;
+  let d = `M0 ${h} L0 ${base}`;
+  for (let i = 0; i < n; i++) {
+    const x0 = i * step, x1 = x0 + step, th = minT + r() * (maxT - minT);
+    const tipX = x0 + step * (0.35 + r() * 0.5), tipY = base - th, curl = (r() - 0.5) * step * 0.9;
+    d += ` C ${(x0 + step * 0.05).toFixed(1)} ${(base - th * 0.45).toFixed(1)} ${(tipX - step * 0.45 + curl).toFixed(1)} ${(tipY + th * 0.35).toFixed(1)} ${(tipX + curl * 0.6).toFixed(1)} ${tipY.toFixed(1)}`;
+    d += ` C ${(tipX + step * 0.15).toFixed(1)} ${(tipY + th * 0.4).toFixed(1)} ${(x1 - step * 0.05).toFixed(1)} ${(base - th * 0.3).toFixed(1)} ${x1.toFixed(1)} ${base.toFixed(1)}`;
+  }
+  return d + ` L${w} ${h} Z`;
+}
+const FIRE_LAYERS = [
+  { c: "#8e1606", n: 4, a: 0.55, b: 0.95, sp: 3.2, fl: 0.9 },
+  { c: "#e8360a", n: 5, a: 0.45, b: 0.85, sp: 2.4, fl: 0.7 },
+  { c: "#ff8a0d", n: 6, a: 0.30, b: 0.65, sp: 1.8, fl: 0.55 },
+  { c: "#ffd23f", n: 7, a: 0.12, b: 0.38, sp: 1.3, fl: 0.4 },
+];
+const _fireTileCache = new Map();
+function _fireTile(i, thick) {
+  const key = i + ":" + thick;
+  if (!_fireTileCache.has(key)) {
+    const L = FIRE_LAYERS[i], tile = 90 + i * 6;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${tile}' height='${thick}' viewBox='0 0 ${tile} ${thick}'><path d='${_flamePath(tile, thick, L.n, thick * L.a, thick * L.b, 7 + i * 31)}' fill='${L.c}'/></svg>`;
+    _fireTileCache.set(key, { tile, url: `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")` });
+  }
+  return _fireTileCache.get(key);
+}
+function _fireStrip(frame, len, thick, transform, phase) {
+  const s = document.createElement("div");
+  s.className = "fire-strip";
+  s.style.width = len + "px"; s.style.height = thick + "px"; s.style.transform = transform;
+  FIRE_LAYERS.forEach((L, i) => {
+    const { tile, url } = _fireTile(i, thick);
+    const l = document.createElement("div");
+    l.className = "fire-layer";
+    l.style.backgroundImage = url;
+    l.style.backgroundSize = `${tile}px ${thick}px`;
+    l.style.backgroundPositionX = `${Math.round(phase * tile)}px`;
+    l.style.setProperty("--tile", (i % 2 ? -tile : tile) + Math.round(phase * tile) + "px");
+    l.style.animation = `fireScroll ${L.sp}s linear infinite, fireFlick ${L.fl}s ease-in-out ${(-i * 0.13 - phase).toFixed(2)}s infinite alternate`;
+    s.appendChild(l);
+  });
+  frame.appendChild(s);
+}
+function buildFireFrame(frame) {
+  const W = frame.offsetWidth, H = frame.offsetHeight;
+  if (!W || !H) return;
+  if (frame.dataset.size === W + "x" + H) return;
+  frame.dataset.size = W + "x" + H;
+  frame.innerHTML = "";
+  const t = Math.round(Math.max(26, Math.min(38, W * 0.17))), o = 8, x = 10; // flame height, overlap under the border, overhang
+  _fireStrip(frame, W + 2 * x, t, `translate(${-x}px, ${-t + o}px)`, 0.1);
+  _fireStrip(frame, W + 2 * x, t, `translate(${W + x}px, ${H + t - o}px) rotate(180deg)`, 0.6);
+  _fireStrip(frame, H + 2 * x, t, `translate(${-t + o}px, ${H + x}px) rotate(-90deg)`, 0.35);
+  _fireStrip(frame, H + 2 * x, t, `translate(${W + t - o}px, ${-x}px) rotate(90deg)`, 0.85);
+}
+const _fireObserver = window.ResizeObserver ? new ResizeObserver(entries => entries.forEach(e => buildFireFrame(e.target))) : null;
+function attachFireFrame(card) {
+  const frame = document.createElement("div");
+  frame.className = "fire-frame";
+  card.appendChild(frame);
+  if (_fireObserver) _fireObserver.observe(frame);
+  requestAnimationFrame(() => buildFireFrame(frame));
+}
+/* Small round version for Player Ranking thumbnails */
+let _miniFireSvg = null;
+function miniFireHtml() {
+  if (!_miniFireSvg) {
+    const ring = (n, r0, len, color, seed) => {
+      const rnd = _fireRng(seed); let d = "";
+      for (let i = 0; i < n; i++) {
+        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2 + (rnd() - 0.5) * 0.25;
+        const L = len * (0.7 + rnd() * 0.5), P = (a, r) => `${(50 + Math.cos(a) * r).toFixed(1)} ${(50 + Math.sin(a) * r).toFixed(1)}`;
+        d += `M${P(a0, r0)} Q${P(am - 0.12, r0 + L * 0.55)} ${P(am + 0.08, r0 + L)} Q${P(am + 0.18, r0 + L * 0.45)} ${P(a1, r0)} Z `;
+      }
+      return `<path d="${d}" fill="${color}"/>`;
+    };
+    _miniFireSvg = `<svg viewBox="0 0 100 100" aria-hidden="true">${ring(11, 26, 22, "#8e1606", 3)}${ring(13, 26, 16, "#e8360a", 11)}${ring(15, 26, 11, "#ff8a0d", 19)}${ring(17, 26, 6, "#ffd23f", 29)}</svg>`;
+  }
+  return `<span class="mini-fire">${_miniFireSvg}</span>`;
+}
 function hotBadgeHtml(pop, extraCls = "") {
   return pop ? `<span class="hot-badge ${extraCls}" title="Popular now: #${pop.rank} — in ${pop.bets} bet(s) for the next round">🔥#${pop.rank}</span>` : "";
 }
@@ -3673,7 +3759,7 @@ function renderPlayerRanking() {
     row.dataset.playerId = r.id;
     row.innerHTML = `
       <div class="rank-ball ${rankCls}">${i + 1}</div>
-      <div class="thumb-wrap"><div class="thumb${popOf(r.id) ? " hot" : ""}">${r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="">` : "—"}</div>${hotBadgeHtml(popOf(r.id))}</div>
+      <div class="thumb-wrap">${popOf(r.id) ? miniFireHtml() : ""}<div class="thumb${popOf(r.id) ? " hot" : ""}">${r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="">` : "—"}</div>${hotBadgeHtml(popOf(r.id))}</div>
       <div class="name">
         ${escapeHtml(r.name)}
         ${r.removed ? '<span class="tag-removed">removed</span>' : ""}
