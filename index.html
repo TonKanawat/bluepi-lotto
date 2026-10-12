@@ -300,14 +300,32 @@
   .rank-card:hover { transform: translateY(-2px); }
   /* ===== "Popular now" — top-5 pictures in open Lottery Bets: cartoon "Fire frame" + #rank badge ===== */
   .rank-row { isolation: isolate; }                 /* flames (z-index -1) stay behind the cards but above the stage */
-  .rank-card.hot { border-color: #ff7a00 !important; }
+  .rank-card.hot { border-color: #ff7a00 !important; animation: fireHalo 2.6s ease-in-out infinite; }
+  @keyframes fireHalo { 0%, 100% { box-shadow: 0 0 14px 4px rgba(255,110,0,.45); } 50% { box-shadow: 0 0 24px 8px rgba(255,150,0,.6); } }
   .rank-card.hot:hover { transform: none; }         /* a transform would pull the flames in front of the card */
   .rank-card.hot .rank-label { z-index: 6; }
   .fire-frame { position: absolute; inset: -5px; z-index: -1; pointer-events: none; }   /* -5px = card border */
-  .fire-strip { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .fire-strip { position: absolute; left: 0; top: 0; transform-origin: 0 0;
+    /* fade both ends so the four sides melt into each other at the corners (no hard joints) */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); }
   .fire-layer { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 0 100%; transform-origin: 50% 100%; will-change: transform; }
+  .fire-layer.l0 { filter: blur(1.2px); opacity: .92; }
+  .fire-layer.l1 { filter: blur(.7px); }
+  .fire-layer.l2 { filter: blur(.4px); }
+  .fire-glow { position: absolute; inset: -14px; border-radius: 22px; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(255,140,0,.0) 70%, rgba(255,120,0,.45) 86%, rgba(255,80,0,0) 100%);
+    filter: blur(6px); animation: fireBreath 2.2s ease-in-out infinite; }
+  .fire-corner { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, #ffe27a 0 18%, #ff9a1a 38%, rgba(232,54,10,.75) 58%, rgba(142,22,6,0) 72%);
+    filter: blur(2px); animation: fireBreath 1.7s ease-in-out infinite; }
   @keyframes fireScroll { to { background-position-x: var(--tile); } }
-  @keyframes fireFlick { 0% { transform: scaleY(.86); } 40% { transform: scaleY(1.08); } 70% { transform: scaleY(.95); } 100% { transform: scaleY(1.04); } }
+  @keyframes fireFlick {
+    0%   { transform: scaleY(.9)  skewX(-3deg); }
+    50%  { transform: scaleY(1.07) skewX(2deg); }
+    100% { transform: scaleY(.96) skewX(-1deg); }
+  }
+  @keyframes fireBreath { 0%, 100% { transform: scale(.94); opacity: .85; } 50% { transform: scale(1.06); opacity: 1; } }
   @keyframes fireSpin { to { transform: rotate(360deg); } }
   @keyframes firePuff { 0% { transform: scale(.94); } 50% { transform: scale(1.06); } 100% { transform: scale(.97); } }
   .hot-badge {
@@ -324,7 +342,7 @@
   .player-row .thumb-wrap { position: relative; display: inline-block; }
   .player-row .thumb-wrap .hot-badge { top: -8px; left: -12px; font-size: 10px; padding: 0 6px 0 4px; border-width: 1px; }
   @media (prefers-reduced-motion: reduce) {
-    .fire-layer, .mini-fire, .mini-fire svg { animation: none !important; }
+    .fire-layer, .fire-glow, .fire-corner, .rank-card.hot, .mini-fire, .mini-fire svg { animation: none !important; }
   }
   .rank-row.top-row .rank-card { border-color: var(--gold); }
   .rank-row.bottom-row .rank-card { border-color: var(--red); }
@@ -2570,17 +2588,18 @@ function _flamePath(w, h, n, minT, maxT, seed) {
   let d = `M0 ${h} L0 ${base}`;
   for (let i = 0; i < n; i++) {
     const x0 = i * step, x1 = x0 + step, th = minT + r() * (maxT - minT);
-    const tipX = x0 + step * (0.35 + r() * 0.5), tipY = base - th, curl = (r() - 0.5) * step * 0.9;
-    d += ` C ${(x0 + step * 0.05).toFixed(1)} ${(base - th * 0.45).toFixed(1)} ${(tipX - step * 0.45 + curl).toFixed(1)} ${(tipY + th * 0.35).toFixed(1)} ${(tipX + curl * 0.6).toFixed(1)} ${tipY.toFixed(1)}`;
-    d += ` C ${(tipX + step * 0.15).toFixed(1)} ${(tipY + th * 0.4).toFixed(1)} ${(x1 - step * 0.05).toFixed(1)} ${(base - th * 0.3).toFixed(1)} ${x1.toFixed(1)} ${base.toFixed(1)}`;
+    // rounded, slightly leaning cartoon tongue: horizontal tangents at the tip give a soft round top
+    const lean = (r() - 0.5) * step * 0.5, tipX = x0 + step * 0.5 + lean, tipY = base - th, bulge = step * (0.28 + r() * 0.12);
+    d += ` C ${(x0 + step * 0.02).toFixed(1)} ${(base - th * 0.55).toFixed(1)} ${(tipX - bulge).toFixed(1)} ${tipY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`;
+    d += ` C ${(tipX + bulge * 0.8).toFixed(1)} ${tipY.toFixed(1)} ${(x1 - step * 0.02).toFixed(1)} ${(base - th * 0.5).toFixed(1)} ${x1.toFixed(1)} ${base.toFixed(1)}`;
   }
   return d + ` L${w} ${h} Z`;
 }
 const FIRE_LAYERS = [
-  { c: "#8e1606", n: 4, a: 0.55, b: 0.95, sp: 3.2, fl: 0.9 },
-  { c: "#e8360a", n: 5, a: 0.45, b: 0.85, sp: 2.4, fl: 0.7 },
-  { c: "#ff8a0d", n: 6, a: 0.30, b: 0.65, sp: 1.8, fl: 0.55 },
-  { c: "#ffd23f", n: 7, a: 0.12, b: 0.38, sp: 1.3, fl: 0.4 },
+  { c: "#8e1606", n: 4, a: 0.60, b: 0.95, sp: 6.5, fl: 1.7 },
+  { c: "#e8360a", n: 5, a: 0.48, b: 0.85, sp: 4.8, fl: 1.35 },
+  { c: "#ff8a0d", n: 6, a: 0.32, b: 0.66, sp: 3.6, fl: 1.1 },
+  { c: "#ffd23f", n: 7, a: 0.14, b: 0.40, sp: 2.7, fl: 0.9 },
 ];
 const _fireTileCache = new Map();
 function _fireTile(i, thick) {
@@ -2599,7 +2618,7 @@ function _fireStrip(frame, len, thick, transform, phase) {
   FIRE_LAYERS.forEach((L, i) => {
     const { tile, url } = _fireTile(i, thick);
     const l = document.createElement("div");
-    l.className = "fire-layer";
+    l.className = "fire-layer l" + i;
     l.style.backgroundImage = url;
     l.style.backgroundSize = `${tile}px ${thick}px`;
     l.style.backgroundPositionX = `${Math.round(phase * tile)}px`;
@@ -2616,10 +2635,14 @@ function buildFireFrame(frame) {
   frame.dataset.size = W + "x" + H;
   frame.innerHTML = "";
   const t = Math.round(Math.max(26, Math.min(38, W * 0.17))), o = 8, x = 10; // flame height, overlap under the border, overhang
+  frame.insertAdjacentHTML("beforeend", `<div class="fire-glow"></div>`);
   _fireStrip(frame, W + 2 * x, t, `translate(${-x}px, ${-t + o}px)`, 0.1);
   _fireStrip(frame, W + 2 * x, t, `translate(${W + x}px, ${H + t - o}px) rotate(180deg)`, 0.6);
   _fireStrip(frame, H + 2 * x, t, `translate(${-t + o}px, ${H + x}px) rotate(-90deg)`, 0.35);
   _fireStrip(frame, H + 2 * x, t, `translate(${W + t - o}px, ${-x}px) rotate(90deg)`, 0.85);
+  // soft round flame puffs hide the joints where two sides meet
+  [[0, 0], [W, 0], [0, H], [W, H]].forEach(([cx, cy], i) =>
+    frame.insertAdjacentHTML("beforeend", `<div class="fire-corner" style="left:${cx}px;top:${cy}px;animation-delay:${(-i * 0.4).toFixed(1)}s"></div>`));
 }
 const _fireObserver = window.ResizeObserver ? new ResizeObserver(entries => entries.forEach(e => buildFireFrame(e.target))) : null;
 function attachFireFrame(card) {
