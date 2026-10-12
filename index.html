@@ -390,6 +390,8 @@
   .pool-item .x-btn:hover { transform: scale(1.1); }
   .pool-item .replace-btn { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: white; border: 2px solid var(--gold); cursor: pointer; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; z-index: 2; }
   .pool-item .replace-btn:hover { transform: scale(1.1) rotate(90deg); }
+  .pool-item .rename-btn { position: absolute; top: 8px; left: 40px; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: var(--navy-deep, #0a1f6e); border: 2px solid var(--navy); cursor: pointer; font-weight: 800; font-size: 13px; display: grid; place-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; z-index: 2; }
+  .pool-item .rename-btn:hover { transform: scale(1.1); }
   .replace-compare { display: flex; gap: 12px; justify-content: center; align-items: center; margin: 0 0 16px; }
   .replace-compare .col { text-align: center; }
   .replace-compare .col .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; font-weight: 700; }
@@ -892,9 +894,18 @@
   .qty button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--navy); background: white; cursor: pointer; font-weight: 800; color: var(--navy); }
   .qty input { width: 44px; text-align: center; padding: 4px; border: 2px solid var(--gold-deep); border-radius: 8px; font-weight: 700; }
   .shop-card .btn { padding: 9px 12px; font-size: 12px; justify-content: center; }
-  .shop-card .sc-admin { border-top: 1px dashed rgba(0,0,0,0.2); padding-top: 8px; display: flex; gap: 6px; align-items: center; justify-content: center; }
-  .shop-card .sc-admin input { width: 76px; padding: 5px 6px; border: 2px solid var(--blue-deep); border-radius: 6px; font-weight: 700; }
+  .shop-card .sc-admin { border-top: 1px dashed rgba(0,0,0,0.2); padding-top: 8px; display: grid; gap: 6px; }
+  .shop-card .sc-admin .sa-row { display: flex; gap: 6px; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--navy); }
+  .shop-card .sc-admin input { width: 70px; padding: 5px 6px; border: 2px solid var(--blue-deep); border-radius: 6px; font-weight: 700; }
   .shop-card .sc-admin button { border: 0; background: var(--blue-deep); color: white; border-radius: 6px; padding: 6px 8px; font-size: 11px; cursor: pointer; font-weight: 700; }
+  .shop-card .sc-admin button.sa-remove { background: transparent; color: var(--red-deep, #a31419); border: 2px solid currentColor; }
+  .shop-card .sc-admin .sa-tag { font-size: 10px; color: var(--muted); font-weight: 400; }
+  .shop-card.add-card { background: white; border-style: dashed; justify-content: center; }
+  .shop-card.add-card .sc-mult { font-size: 30px; color: var(--muted); }
+  .removed-box { margin-top: 10px; padding: 10px 12px; border: 2px dashed #bbb; border-radius: 10px; background: #fafafa; font-size: 12px; }
+  .removed-box .rb-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed #ddd; }
+  .removed-box .rb-row:last-child { border-bottom: 0; }
+  .removed-box button { border: 2px solid var(--blue-deep); background: white; color: var(--blue-deep); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
   .how-box { margin-top: 20px; padding: 14px 16px; border: 2px dashed var(--gold-deep); border-radius: 12px; background: var(--cream); font-size: 13px; line-height: 1.55; }
   .how-box b { color: var(--red); }
 
@@ -1640,6 +1651,18 @@ Object.assign(Store, {
     const { error } = await sb.from("shop_items").update(fields).eq("key", key);
     if (error) throw error;
   },
+  /** Admin: add (key = null) or edit a Turbo / Special Turbo. Returns the item key. */
+  async saveShopItem(key, kind, multiplier, price) {
+    const { data, error } = await sb.rpc("admin_save_shop_item", { p_key: key || null, p_kind: kind || null, p_multiplier: multiplier, p_price: price });
+    if (error) throw error;
+    return data;
+  },
+  /** Admin: remove from the market (players keep their stock). Returns how many players hold some. */
+  async removeShopItem(key) {
+    const { data, error } = await sb.rpc("admin_remove_shop_item", { p_key: key });
+    if (error) throw error;
+    return data;
+  },
   async listInventory() {
     const { data, error } = await sb.from("inventory").select("*");
     if (error) throw error;
@@ -1725,6 +1748,10 @@ function friendlyError(err) {
     PICKS_MUST_DIFFER: "Your three picks must be different pictures.",
     PICTURE_NOT_FOUND: "One of your picks no longer exists. Please pick again.",
     NO_TURBO_IN_STOCK: "You don't have that Turbo anymore. Buy one in Turbo Market.",
+    MULTIPLIER_EXISTS_REMOVED: "That multiplier was removed from the market earlier and players still hold some. Use “Bring back” instead.",
+    MULTIPLIER_EXISTS: "That multiplier is already in the market. Each multiplier can only exist once per kind.",
+    BAD_MULTIPLIER: "Multiplier must be between 1 and 100.",
+    BAD_PRICE: "Price must be 0 or more.",
     NO_SPECIAL_IN_STOCK: "You don't have enough of that Special Turbo (each pick needs its own). Buy more in Turbo Market.",
     SPECIAL_NEEDS_PLACE: "Choose which place (1st, 2nd or 3rd) gets the Special Turbo.",
     NOT_ADMIN: "Only the admin can do this.",
@@ -2410,6 +2437,7 @@ function renderBackOffice() {
       const item = document.createElement("div"); item.className = "pool-item";
       item.innerHTML = `
         <button class="replace-btn" title="Replace image (keeps probability & wins)" data-replace="${p.id}">↻</button>
+        <button class="rename-btn" title="Rename" data-rename="${p.id}">✎</button>
         <button class="x-btn" title="Delete" data-del="${p.id}">×</button>
         <div class="pic">${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : ""}</div>
         <div class="meta">
@@ -2421,6 +2449,7 @@ function renderBackOffice() {
     host.appendChild(grid);
     grid.querySelectorAll("[data-del]").forEach(btn => { btn.onclick = () => confirmDelete(btn.dataset.del); });
     grid.querySelectorAll("[data-replace]").forEach(btn => { btn.onclick = () => triggerReplace(btn.dataset.replace); });
+    grid.querySelectorAll("[data-rename]").forEach(btn => { btn.onclick = () => renamePictureFlow(btn.dataset.rename); });
   }
   const sg = $("#settings-grid"); sg.innerHTML = "";
   for (const def of MSG_DEFS) {
@@ -2565,8 +2594,10 @@ function renderWallet() {
 function fillWalletPop(kind) {
   const pop = $("#wallet-pop");
   pop.dataset.kind = kind;
-  const items = State.shopItems.filter(s => s.kind === kind);
   const own = Object.fromEntries(myInventory().map(i => [i.item_key, i.qty]));
+  // Items in the market, plus removed ones you still hold
+  const items = State.shopItems.filter(s => s.kind === kind && (!s.deleted_at || own[s.key] > 0))
+    .sort((a, b) => Number(a.multiplier) - Number(b.multiplier));
   const open = State.myBets.find(b => b.status === "open");
   const inUse = open ? (kind === "turbo" ? [open.turbo_key] : [1, 2, 3].map(n => betSpecial(open, n))) : [];
   const onBet = key => {
@@ -2575,7 +2606,7 @@ function fillWalletPop(kind) {
   };
   pop.innerHTML = `
     <h4>${kind === "turbo" ? "YOUR TURBOS" : "YOUR SPECIAL TURBOS"}</h4>
-    ${items.map(s => `<div class="wp-row${own[s.key] ? "" : " zero"}"><span>${escapeHtml(itemLabel(s))}${onBet(s.key)}</span><b>× ${own[s.key] || 0}</b></div>`).join("") || '<div class="empty-note">Nothing yet.</div>'}
+    ${items.map(s => `<div class="wp-row${own[s.key] ? "" : " zero"}"><span>${escapeHtml(itemLabel(s))}${s.deleted_at ? ' <small style="color:var(--muted)">(no longer sold)</small>' : ""}${onBet(s.key)}</span><b>× ${own[s.key] || 0}</b></div>`).join("") || '<div class="empty-note">Nothing yet.</div>'}
     <div class="wp-foot"><span style="font-size:11px;color:var(--muted)">Used up when the round is played.</span>
       <button class="mini-btn" id="wp-shop">Turbo Market →</button></div>`;
   pop.querySelector("#wp-shop").onclick = () => { pop.classList.add("hidden"); setView("turbo-market"); };
@@ -2599,16 +2630,23 @@ const _qty = {}; // remembered quantity per item card
 function renderTurboMarket() {
   $("#market-balance").textContent = myBalance().toLocaleString();
   const host = $("#market-host");
-  if (State.shopItems.length === 0) {
-    host.innerHTML = `<div class="empty-note">The market is empty. (If this is the first run, the demo database may not be set up yet.)</div>`;
+  if (State.shopItems.length === 0 && !State.isAdmin) {
+    host.innerHTML = `<div class="empty-note">The market is empty.</div>`;
     return;
   }
   const own = Object.fromEntries(myInventory().map(i => [i.item_key, i.qty]));
   const bal = myBalance();
+  const byMult = (a, b) => Number(a.multiplier) - Number(b.multiplier);
+  // Admin only: how many players hold each item (admin can read every pocket; players only their own)
+  const held = (key) => {
+    const rows = State.inventory.filter(i => i.item_key === key && i.qty > 0);
+    return { players: rows.length, items: rows.reduce((s, i) => s + i.qty, 0) };
+  };
   const card = (s) => {
     const q = _qty[s.key] || 1;
     const cost = s.price * q;
     const can = s.active && bal >= cost;
+    const h = State.isAdmin ? held(s.key) : null;
     return `
       <div class="shop-card ${s.kind === "special" ? "special" : ""}" data-item="${s.key}">
         <div class="sc-kind">${s.kind === "turbo" ? "TURBO" : "SPECIAL TURBO"}${s.active ? "" : " · OFF SALE"}</div>
@@ -2621,24 +2659,47 @@ function renderTurboMarket() {
           <button data-q="1" aria-label="More">+</button>
         </div>
         <button class="btn btn-primary" data-buy ${can ? "" : "disabled"}>${can ? `Buy · ${cost.toLocaleString()} pts` : (s.active ? "Not enough points" : "Off sale")}</button>
-        ${State.isAdmin ? `<div class="sc-admin" title="Admin: set price">
-            <input type="number" min="0" step="10" value="${s.price}" data-price aria-label="Price" />
-            <button data-save-price>Save price</button>
+        ${State.isAdmin ? `<div class="sc-admin">
+            <div class="sa-row"><span>×</span><input type="number" min="1" max="100" step="0.05" value="${Number(s.multiplier)}" data-mult aria-label="Multiplier" />
+              <input type="number" min="0" step="10" value="${s.price}" data-price aria-label="Price" /><span>pts</span></div>
+            <div class="sa-row"><button data-save-item>Save</button><button class="sa-remove" data-remove-item>Remove</button></div>
+            <div class="sa-tag">${h.players ? `${h.players} player(s) hold ${h.items}` : "No player holds this"}</div>
           </div>` : ""}
       </div>`;
   };
-  const turbos = State.shopItems.filter(s => s.kind === "turbo" && (s.active || State.isAdmin));
-  const specials = State.shopItems.filter(s => s.kind === "special" && (s.active || State.isAdmin));
+  const addCard = (kind) => State.isAdmin ? `
+      <div class="shop-card add-card ${kind === "special" ? "special" : ""}" data-add="${kind}">
+        <div class="sc-kind">NEW ${kind === "turbo" ? "TURBO" : "SPECIAL TURBO"}</div>
+        <div class="sc-mult">+</div>
+        <div class="sc-admin" style="border-top:0;padding-top:0">
+          <div class="sa-row"><span>×</span><input type="number" min="1" max="100" step="0.05" placeholder="e.g. 3.5" data-new-mult aria-label="Multiplier" /></div>
+          <div class="sa-row"><input type="number" min="0" step="10" placeholder="price" data-new-price aria-label="Price" /><span>pts</span></div>
+          <div class="sa-row"><button data-add-item>Add to market</button></div>
+        </div>
+      </div>` : "";
+  const removedBox = (kind) => {
+    if (!State.isAdmin) return "";
+    const rows = State.shopItems.filter(s => s.kind === kind && s.deleted_at).sort(byMult)
+      .map(s => ({ s, h: held(s.key) })).filter(x => x.h.items > 0);
+    if (!rows.length) return "";
+    return `<div class="removed-box"><b>Removed from the market — still in players' pockets</b> (they can still use them):
+      ${rows.map(({ s, h }) => `<div class="rb-row"><span>${escapeHtml(itemLabel(s))} — ${h.players} player(s) hold ${h.items}</span>
+        <button data-bring-back="${s.key}">Bring back</button></div>`).join("")}</div>`;
+  };
+  const inMarket = (kind) => State.shopItems.filter(s => s.kind === kind && !s.deleted_at && (s.active || State.isAdmin)).sort(byMult);
   host.innerHTML = `
+    ${State.isAdmin ? `<div class="form-info" style="margin-bottom:6px">Admin: change a multiplier or price and press <b>Save</b>. Changing a multiplier also changes it for every player who owns that item and hasn't used it yet (including boosts on bets that haven't been played). <b>Remove</b> only takes it off the market — players keep theirs.</div>` : ""}
     <div class="market-section">
       <h4>⚡ TURBO</h4>
       <div class="sub">Multiplies the points of <b>every</b> winning pick in your bet.</div>
-      <div class="shop-grid">${turbos.map(card).join("")}</div>
+      <div class="shop-grid">${inMarket("turbo").map(card).join("")}${addCard("turbo")}</div>
+      ${removedBox("turbo")}
     </div>
     <div class="market-section">
       <h4>★ SPECIAL TURBO</h4>
       <div class="sub">Attach one to <b>each pick</b> you like (1st, 2nd and/or 3rd) — up to 3 per bet. Each one only pays if its pick wins a prize.</div>
-      <div class="shop-grid">${specials.map(card).join("")}</div>
+      <div class="shop-grid">${inMarket("special").map(card).join("")}${addCard("special")}</div>
+      ${removedBox("special")}
     </div>
     <div class="how-box">
       <b>How winnings are calculated</b> (for each winning pick, Turbo and Special Turbo are calculated separately and added):<br>
@@ -2649,20 +2710,80 @@ function renderTurboMarket() {
       Boosts attached to your bet are used up when the round is played, win or lose. You can swap or remove them any time before that.
     </div>`;
 
-  host.querySelectorAll(".shop-card").forEach(el => {
+  const afterAdminChange = async (msg) => {
+    State.shopItems = await Store.listShopItems();
+    render(); renderWallet(); renderBetUI();
+    toast(msg, "success");
+  };
+
+  host.querySelectorAll(".shop-card[data-item]").forEach(el => {
     const key = el.dataset.item;
+    const s = shopItem(key);
     const input = el.querySelector("[data-qin]");
     const setQ = (q) => { _qty[key] = Math.max(1, Math.min(99, q || 1)); renderTurboMarket(); };
     el.querySelectorAll("[data-q]").forEach(b => b.onclick = () => setQ((_qty[key] || 1) + Number(b.dataset.q)));
     input.onchange = () => setQ(parseInt(input.value, 10));
     el.querySelector("[data-buy]").onclick = () => buyFlow(key);
-    const save = el.querySelector("[data-save-price]");
+    const save = el.querySelector("[data-save-item]");
     if (save) save.onclick = async () => {
+      const mult = Math.round(parseFloat(el.querySelector("[data-mult]").value) * 100) / 100;
       const price = parseInt(el.querySelector("[data-price]").value, 10);
+      if (!(mult >= 1 && mult <= 100)) { toast("Multiplier must be between 1 and 100.", "error"); return; }
       if (!(price >= 0)) { toast("Enter a price of 0 or more.", "error"); return; }
-      try { await Store.updateShopItem(key, { price }); State.shopItems = await Store.listShopItems(); renderTurboMarket(); toast(`${itemLabel(shopItem(key))} price set to ${price.toLocaleString()} pts.`, "success"); }
+      const oldLabel = itemLabel(s);
+      const multChanged = Number(s.multiplier) !== mult;
+      if (multChanged) {
+        const h = held(key);
+        const newLabel = `${s.kind === "turbo" ? "Turbo" : "Special Turbo"} ${multText(mult)}`;
+        const ok = await modal({
+          title: `Change ${escapeHtml(oldLabel)} → ${escapeHtml(newLabel)}?`,
+          html: `<div class="form-info">${h.players
+              ? `<b>${h.players} player(s)</b> hold <b>${h.items}</b> of this item. All of them become <b>${escapeHtml(newLabel)}</b> — including any already attached to a bet that hasn't been played yet.`
+              : "No player holds this item yet."}</div>
+            <p>Rounds that were already played are not affected.</p>`,
+          confirmText: "Change",
+        });
+        if (!ok) return;
+      }
+      try {
+        await Store.saveShopItem(key, s.kind, mult, price);
+        await afterAdminChange(multChanged ? `${oldLabel} is now ${multText(mult)} · ${price.toLocaleString()} pts.` : `${oldLabel} price set to ${price.toLocaleString()} pts.`);
+      } catch (e) { toast(friendlyError(e), "error"); }
+    };
+    const rm = el.querySelector("[data-remove-item]");
+    if (rm) rm.onclick = async () => {
+      const h = held(key);
+      const ok = await modal({
+        title: `Remove ${escapeHtml(itemLabel(s))} from the market?`,
+        html: `<p>Nobody can buy it any more.</p><div class="form-info">${h.players
+            ? `<b>${h.players} player(s)</b> still hold <b>${h.items}</b>. They <b>keep them</b> and can still use them in their bets.`
+            : "No player holds this item."}</div>
+          <p>You can bring it back later.</p>`,
+        confirmText: "Remove", danger: true,
+      });
+      if (!ok) return;
+      try { await Store.removeShopItem(key); await afterAdminChange(`${itemLabel(s)} removed from the market.`); }
       catch (e) { toast(friendlyError(e), "error"); }
     };
+  });
+
+  host.querySelectorAll("[data-add]").forEach(el => {
+    const kind = el.dataset.add;
+    el.querySelector("[data-add-item]").onclick = async () => {
+      const mult = Math.round(parseFloat(el.querySelector("[data-new-mult]").value) * 100) / 100;
+      const price = parseInt(el.querySelector("[data-new-price]").value, 10);
+      if (!(mult >= 1 && mult <= 100)) { toast("Enter a multiplier between 1 and 100.", "error"); return; }
+      if (!(price >= 0)) { toast("Enter a price of 0 or more.", "error"); return; }
+      const label = `${kind === "turbo" ? "Turbo" : "Special Turbo"} ${multText(mult)}`;
+      try { await Store.saveShopItem(null, kind, mult, price); await afterAdminChange(`${label} added to the market.`); }
+      catch (e) { toast(friendlyError(e), "error"); }
+    };
+  });
+
+  host.querySelectorAll("[data-bring-back]").forEach(btn => btn.onclick = async () => {
+    const s = shopItem(btn.dataset.bringBack);
+    try { await Store.saveShopItem(null, s.kind, Number(s.multiplier), s.price); await afterAdminChange(`${itemLabel(s)} is back in the market.`); }
+    catch (e) { toast(friendlyError(e), "error"); }
   });
 }
 
@@ -3661,6 +3782,38 @@ function triggerReplace(id) {
     } else { input.remove(); }
   };
   input.click();
+}
+
+/** Admin: rename a picture. The database updates the name everywhere (past rounds, Point History, bets, claims). */
+async function renamePictureFlow(id) {
+  if (!State.isAdmin) return;
+  const pic = State.pictures.find(p => p.id === id); if (!pic) return;
+  let newName = "";
+  const ok = await modal({
+    title: `Rename "${escapeHtml(pic.name)}"`,
+    html: `<label for="m-rename">New name</label>
+      <input type="text" id="m-rename" value="${escapeHtml(pic.name)}" maxlength="100" />
+      <div class="form-info">The new name shows everywhere — Home, History of past rounds, Player Ranking, Point History, bets and reward claims. Points, probability and wins don't change.</div>
+      <div class="bet-err" id="m-rename-err"></div>`,
+    confirmText: "Rename",
+    onConfirm: (m) => {
+      const v = m.querySelector("#m-rename").value.replace(/\s+/g, " ").trim();
+      const errEl = m.querySelector("#m-rename-err");
+      if (!v) { errEl.textContent = "Please enter a name."; return false; }
+      if (State.pictures.some(p => p.id !== id && p.name.trim().toLowerCase() === v.toLowerCase())) {
+        errEl.textContent = `Another picture is already called "${v}".`; return false;
+      }
+      newName = v;
+    }
+  });
+  if (!ok || !newName || newName === pic.name) return;
+  try {
+    await Store.updatePicture(id, { name: newName });
+    [State.pictures, State.rounds, State.pointHistory] = await Promise.all([Store.listPictures(), Store.listRounds(), Store.listPointHistory()]);
+    if (State.isUser) await loadUserData();
+    render(); renderWallet(); renderBetUI();
+    toast(`Renamed "${pic.name}" → "${newName}".`, "success");
+  } catch (e) { console.error(e); toast("Rename failed: " + friendlyError(e), "error"); }
 }
 
 async function confirmReplace(id, file) {
