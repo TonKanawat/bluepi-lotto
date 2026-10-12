@@ -298,6 +298,50 @@
   .rank-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 4px 0; }
   .rank-card { background: white; border: 5px solid; border-radius: 8px; padding: 4px; position: relative; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform 0.2s; }
   .rank-card:hover { transform: translateY(-2px); }
+  /* ===== "Popular now" — top-5 pictures in open Lottery Bets (fire border + #rank badge) ===== */
+  @keyframes fireShift { 0% { background-position: 0% 0%; } 100% { background-position: 0% 300%; } }
+  @keyframes fireGlow {
+    0%   { box-shadow: 0 0 8px 2px rgba(255,120,0,.65), 0 -6px 18px 3px rgba(255,60,0,.45); }
+    50%  { box-shadow: 0 0 14px 4px rgba(255,170,0,.8), 0 -10px 26px 6px rgba(255,80,0,.55); }
+    100% { box-shadow: 0 0 10px 3px rgba(255,90,0,.7), 0 -7px 20px 4px rgba(230,40,0,.5); }
+  }
+  @keyframes flameFlicker {
+    0%   { transform: scaleY(1)    translateY(0);   opacity: .95; }
+    33%  { transform: scaleY(1.25) translateY(-2px); opacity: 1; }
+    66%  { transform: scaleY(.9)   translateY(1px); opacity: .85; }
+    100% { transform: scaleY(1.15) translateY(-1px); opacity: 1; }
+  }
+  .rank-card.hot { border-color: #ff6a00 !important; animation: fireGlow 1.1s ease-in-out infinite alternate; }
+  .rank-card.hot::before {          /* animated flame-coloured ring around the card */
+    content: ""; position: absolute; inset: -9px; border-radius: 13px; padding: 5px; pointer-events: none; z-index: 3;
+    background: linear-gradient(0deg, #ff2a00, #ff7b00, #ffd000, #ff7b00, #ff2a00, #ff7b00, #ffd000);
+    background-size: 100% 300%; animation: fireShift 1.3s linear infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);          mask-composite: exclude;
+  }
+  .rank-card.hot::after {           /* flame tongues licking up from the top edge */
+    content: ""; position: absolute; left: -6px; right: -6px; top: -24px; height: 28px; pointer-events: none; z-index: 1;
+    background:
+      radial-gradient(ellipse 12% 100% at 10% 100%, rgba(255,200,0,.95), rgba(255,90,0,.7) 45%, transparent 70%),
+      radial-gradient(ellipse 10% 80%  at 28% 100%, rgba(255,150,0,.9),  rgba(255,50,0,.6) 45%, transparent 70%),
+      radial-gradient(ellipse 13% 100% at 50% 100%, rgba(255,220,0,.95), rgba(255,100,0,.7) 45%, transparent 70%),
+      radial-gradient(ellipse 10% 85%  at 72% 100%, rgba(255,160,0,.9),  rgba(255,60,0,.6) 45%, transparent 70%),
+      radial-gradient(ellipse 12% 100% at 90% 100%, rgba(255,200,0,.95), rgba(255,90,0,.7) 45%, transparent 70%);
+    filter: blur(1.5px); transform-origin: bottom center; animation: flameFlicker .45s ease-in-out infinite alternate;
+  }
+  .hot-badge {
+    position: absolute; top: -13px; left: -11px; z-index: 5; display: inline-flex; align-items: center; gap: 2px;
+    background: linear-gradient(180deg, #ffb300, #ff5a00 55%, #d42000); color: white; border: 2px solid #fff3c4;
+    border-radius: 999px; padding: 2px 9px 2px 6px; font-family: var(--font-display); font-size: 12px; letter-spacing: .5px;
+    box-shadow: 0 2px 6px rgba(160,30,0,.5); text-shadow: 0 1px 0 rgba(0,0,0,.25); white-space: nowrap;
+  }
+  .hot-badge.sm { position: static; font-size: 10px; padding: 0 7px 0 4px; border-width: 1px; box-shadow: none; }
+  .player-row .thumb.hot { border-color: #ff6a00; animation: fireGlow 1.1s ease-in-out infinite alternate; }
+  .player-row .thumb-wrap { position: relative; display: inline-block; }
+  .player-row .thumb-wrap .hot-badge { top: -8px; left: -12px; font-size: 10px; padding: 0 6px 0 4px; border-width: 1px; }
+  @media (prefers-reduced-motion: reduce) {
+    .rank-card.hot, .rank-card.hot::before, .rank-card.hot::after, .player-row .thumb.hot { animation: none; }
+  }
   .rank-row.top-row .rank-card { border-color: var(--gold); }
   .rank-row.bottom-row .rank-card { border-color: var(--red); }
   .rank-row.extra-row .rank-card { border-color: var(--blue); }
@@ -1407,6 +1451,7 @@ const State = {
   myBets: [],             // my recent bets (open + settled)
   openBets: [],           // admin only
   settledBets: [],        // admin only — for the Lottery Bet report
+  popularity: new Map(),  // pictureId → { bets, rank } for the top-5 "popular now" (open bets)
   rewardItems: [],
   claims: [],             // mine (user) or everyone's (admin)
   claimsYear: null,
@@ -1753,6 +1798,12 @@ Object.assign(Store, {
     if (error) throw error;
     return data || [];
   },
+  /** How many open bets include each picture (counts only — no player info). */
+  async listPopularity() {
+    const { data, error } = await sb.rpc("picture_popularity");
+    if (error) throw error;
+    return data || [];
+  },
   async listSettledBets() {
     const { data, error } = await sb.from("bets").select("*").eq("status", "settled").order("updated_at", { ascending: false }).limit(1000);
     if (error) throw error;
@@ -1920,6 +1971,7 @@ async function subscribeAll() {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "rounds" }, async () => {
       try { State.rounds = await Store.listRounds(); render(); } catch (e) { console.error(e); }
+      refreshPopularity(); // a played round settles all open bets → popularity resets
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, async () => {
       try { State.settings = await Store.listSettings(); render(); } catch (e) { console.error(e); }
@@ -2352,6 +2404,11 @@ function buildRankCard(pic, rank) {
   const label = document.createElement("div");
   label.className = "rank-label"; label.textContent = `Rank ${rank}`;
   card.appendChild(label);
+  const pop = pic ? popOf(pic.id) : null;
+  if (pop) {
+    card.classList.add("hot");
+    card.insertAdjacentHTML("beforeend", hotBadgeHtml(pop));
+  }
   const wrap = document.createElement("div"); wrap.className = "pic-wrap";
   if (pic) {
     if (pic.imageUrl) {
@@ -2503,6 +2560,41 @@ function renderPrizePodium(host) {
   }
 
   host.appendChild(wrap);
+}
+
+/* ===== "Popular now": top-5 pictures in bets for the next round ===== */
+// Ranks are shared on ties (5,3,3,2 → #1,#2,#2,#4). Anything ranked #1–#5 with at least one bet is "hot".
+// This is display only — it never changes the real ranking or probabilities.
+function computePopularity(rows) {
+  const sorted = rows.filter(r => r.bets > 0).sort((a, b) => b.bets - a.bets);
+  const map = new Map();
+  let rank = 0, prev = null;
+  sorted.forEach((r, i) => {
+    if (r.bets !== prev) { rank = i + 1; prev = r.bets; }
+    if (rank <= 5) map.set(r.picture_id, { bets: r.bets, rank });
+  });
+  return map;
+}
+function popOf(pictureId) { return State.popularity.get(pictureId) || null; }
+function hotBadgeHtml(pop, extraCls = "") {
+  return pop ? `<span class="hot-badge ${extraCls}" title="Popular now: #${pop.rank} — in ${pop.bets} bet(s) for the next round">🔥#${pop.rank}</span>` : "";
+}
+let _popTimer = null;
+async function refreshPopularity() {
+  try {
+    const next = computePopularity(await Store.listPopularity());
+    const key = m => [...m].map(([k, v]) => k + ":" + v.rank).sort().join(",");
+    const changed = key(next) !== key(State.popularity);
+    State.popularity = next;
+    if (changed) { render(); if (State.betWindowOpen) renderBetUI(); }
+  } catch (e) { console.warn("popularity", e); }
+}
+function startPopularityPolling() {
+  // Other players' bets are private (no realtime events reach us), so poll the counts.
+  clearInterval(_popTimer);
+  refreshPopularity();
+  _popTimer = setInterval(() => { if (!document.hidden) refreshPopularity(); }, 20000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshPopularity(); });
 }
 
 /* ===== BackOffice sub-sections ===== */
@@ -3122,6 +3214,7 @@ function wirePickCombo(el, n, d, onChange) {
           return `<div class="pc-item${t ? " taken" : ""}${i === active ? " active" : ""}${p.id === d["pick" + n] ? " current" : ""}" data-i="${i}" role="option">
             <img src="${escapeHtml(p.imageUrl)}" alt="" loading="lazy" />
             <span class="pc-name">${escapeHtml(p.name)}</span>
+            ${hotBadgeHtml(popOf(p.id), "sm")}
             ${t ? `<span class="pc-tag">pick #${t}</span>` : ""}
           </div>`;
         }).join("")
@@ -3189,6 +3282,7 @@ async function saveBetFlow() {
     State.betDraft = draftFromBet(myOpenBet());
     renderBetUI(); renderWallet();
     toast("Your Lottery Bet is saved. Good luck!", "success");
+    refreshPopularity();
   } catch (e) { err.textContent = friendlyError(e); }
 }
 
@@ -3201,6 +3295,7 @@ async function clearBetFlow() {
     State.betDraft = draftFromBet(null);
     renderBetUI(); renderWallet();
     toast("Bet cleared.", "success");
+    refreshPopularity();
   } catch (e) { toast(friendlyError(e), "error"); }
 }
 
@@ -3594,7 +3689,7 @@ function renderPlayerRanking() {
     row.dataset.playerId = r.id;
     row.innerHTML = `
       <div class="rank-ball ${rankCls}">${i + 1}</div>
-      <div class="thumb">${r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="">` : "—"}</div>
+      <div class="thumb-wrap"><div class="thumb${popOf(r.id) ? " hot" : ""}">${r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="">` : "—"}</div>${hotBadgeHtml(popOf(r.id))}</div>
       <div class="name">
         ${escapeHtml(r.name)}
         ${r.removed ? '<span class="tag-removed">removed</span>' : ""}
@@ -4345,6 +4440,7 @@ async function boot() {
     State.claimsYear = new Date().getFullYear();
     State.loading = false;
     await refreshAuthState();
+    startPopularityPolling();
     setStatus("Live", "success");
     setTimeout(hideStatus, 2200);
     await subscribeAll();
