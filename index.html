@@ -310,9 +310,10 @@
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
             mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); }
   .fire-layer { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 0 100%; transform-origin: 50% 100%; will-change: transform; }
-  .fire-layer.l0 { filter: blur(1.2px); opacity: .92; }
-  .fire-layer.l1 { filter: blur(.7px); }
-  .fire-layer.l2 { filter: blur(.4px); }
+  .fire-layer.l0 { filter: blur(1.8px); opacity: .92; }   /* soft edges: back layers blur more, like heat */
+  .fire-layer.l1 { filter: blur(1.1px); }
+  .fire-layer.l2 { filter: blur(.8px); }
+  .fire-layer.l3 { filter: blur(.5px); }
   .fire-glow { position: absolute; inset: -14px; border-radius: 22px; pointer-events: none;
     background: radial-gradient(closest-side, rgba(255,140,0,.0) 70%, rgba(255,120,0,.45) 86%, rgba(255,80,0,0) 100%);
     filter: blur(6px); animation: fireBreath 2.2s ease-in-out infinite; }
@@ -2589,17 +2590,18 @@ function _flamePath(w, h, n, minT, maxT, seed) {
   for (let i = 0; i < n; i++) {
     const x0 = i * step, x1 = x0 + step, th = minT + r() * (maxT - minT);
     // rounded, slightly leaning cartoon tongue: horizontal tangents at the tip give a soft round top
-    const lean = (r() - 0.5) * step * 0.5, tipX = x0 + step * 0.5 + lean, tipY = base - th, bulge = step * (0.28 + r() * 0.12);
-    d += ` C ${(x0 + step * 0.02).toFixed(1)} ${(base - th * 0.55).toFixed(1)} ${(tipX - bulge).toFixed(1)} ${tipY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`;
-    d += ` C ${(tipX + bulge * 0.8).toFixed(1)} ${tipY.toFixed(1)} ${(x1 - step * 0.02).toFixed(1)} ${(base - th * 0.5).toFixed(1)} ${x1.toFixed(1)} ${base.toFixed(1)}`;
+    // teardrop tongue with a soft (not sharp) tip that leans/curls a little — like a cartoon flame
+    const lean = (r() - 0.5) * step * 0.6, tipX = x0 + step * 0.5 + lean, tipY = base - th, soft = step * (0.18 + r() * 0.08);
+    d += ` C ${(x0 + step * 0.1).toFixed(1)} ${(base - th * 0.42).toFixed(1)} ${(tipX - soft - lean * 0.3).toFixed(1)} ${(tipY + th * 0.12).toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`;
+    d += ` C ${(tipX + soft).toFixed(1)} ${(tipY + th * 0.14).toFixed(1)} ${(x1 - step * 0.1).toFixed(1)} ${(base - th * 0.42).toFixed(1)} ${x1.toFixed(1)} ${base.toFixed(1)}`;
   }
   return d + ` L${w} ${h} Z`;
 }
 const FIRE_LAYERS = [
-  { c: "#8e1606", n: 4, a: 0.60, b: 0.95, sp: 6.5, fl: 1.7 },
-  { c: "#e8360a", n: 5, a: 0.48, b: 0.85, sp: 4.8, fl: 1.35 },
-  { c: "#ff8a0d", n: 6, a: 0.32, b: 0.66, sp: 3.6, fl: 1.1 },
-  { c: "#ffd23f", n: 7, a: 0.14, b: 0.40, sp: 2.7, fl: 0.9 },
+  { c: "#8e1606", n: 4, a: 0.50, b: 0.98, sp: 6.5, fl: 1.7 },
+  { c: "#e8360a", n: 5, a: 0.42, b: 0.90, sp: 4.8, fl: 1.35 },
+  { c: "#ff8a0d", n: 6, a: 0.28, b: 0.70, sp: 3.6, fl: 1.1 },
+  { c: "#ffd23f", n: 7, a: 0.12, b: 0.44, sp: 2.7, fl: 0.9 },
 ];
 const _fireTileCache = new Map();
 function _fireTile(i, thick) {
