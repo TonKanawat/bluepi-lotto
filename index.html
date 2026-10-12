@@ -797,6 +797,240 @@
     .stat-pill .label { font-size: 8px; }
     header.topnav { padding: 10px 12px; }
   }
+  /* =====================================================================
+   * V3 — accounts, wallet, Turbo Market, Lottery Bet, Rewards
+   * ===================================================================== */
+  .user-only.locked { display: none !important; }
+  .demo-ribbon {
+    text-align: center; font-family: var(--font-display); font-size: 11px; letter-spacing: 1px;
+    color: white; background: repeating-linear-gradient(135deg, #7b4fa3 0 14px, #6a4192 14px 28px);
+    border-radius: 999px; padding: 5px 12px; margin: -12px auto 14px; max-width: 640px;
+  }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; }
+
+  /* Wallet next to the logo */
+  .brand { flex-wrap: wrap; }
+  .wallet { display: flex; align-items: stretch; gap: 6px; margin-left: 6px; position: relative; text-shadow: none; }
+  .wallet-col {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 62px; padding: 4px 10px; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(180deg, #fff6c9, #ffe27a); border: 2px solid var(--gold-deep);
+    font-family: var(--font-display); color: var(--navy-deep); line-height: 1.05;
+  }
+  .wallet-col.special { background: linear-gradient(180deg, #ffd8e4, #ff9fbf); border-color: #c2185b; }
+  .wallet-col .w-label { font-size: 9px; letter-spacing: 1px; }
+  .wallet-col .w-count { font-size: 18px; }
+  .wallet-col:hover { transform: translateY(-1px); }
+  .wallet-points {
+    display: flex; align-items: baseline; gap: 4px; padding: 4px 12px; border-radius: 10px;
+    background: var(--navy); color: var(--gold); font-family: var(--font-display); font-size: 18px;
+    align-self: center; border: 2px solid var(--gold);
+  }
+  .wallet-points small { font-size: 9px; letter-spacing: 1px; color: #e9d99e; }
+  .wallet-pop {
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; min-width: 250px;
+    background: var(--cream); border: 2px solid var(--gold); border-radius: 12px;
+    box-shadow: var(--shadow-lg); padding: 12px 14px; font-family: var(--font-body);
+    font-size: 13px; color: var(--ink); letter-spacing: 0;
+  }
+  .wallet-pop h4 { margin: 0 0 8px; font-family: var(--font-display); font-size: 12px; letter-spacing: 1px; color: var(--navy); }
+  .wallet-pop .wp-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #ead9a8; }
+  .wallet-pop .wp-row:last-of-type { border-bottom: 0; }
+  .wallet-pop .wp-row.zero { color: var(--muted); }
+  .wallet-pop .wp-foot { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  /* Password fields with eye toggle */
+  .pw-wrap { position: relative; margin-bottom: 14px; }
+  .pw-wrap input { width: 100%; margin-bottom: 0 !important; padding-right: 46px !important; }
+  .pw-eye {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 30px; border: 0; background: transparent; cursor: pointer;
+    color: var(--navy); display: grid; place-items: center; border-radius: 6px;
+  }
+  .pw-eye:hover { background: rgba(0,0,0,0.06); }
+  .pw-eye svg { width: 20px; height: 20px; }
+  .modal .form-hint { font-size: 12px; color: var(--muted); margin: -6px 0 12px; }
+  .modal .link-btn { background: none; border: 0; color: var(--blue-deep); text-decoration: underline; cursor: pointer; padding: 0; font: inherit; }
+  .modal .modal-switch { font-size: 13px; margin: 2px 0 14px; color: var(--ink); }
+  .modal .code-input { text-transform: uppercase; letter-spacing: 3px; font-family: var(--font-display) !important; }
+
+  /* Balance chip on Market / Rewards */
+  .balance-chip {
+    background: var(--navy); color: var(--gold); border: 2px solid var(--gold);
+    padding: 8px 16px; border-radius: 999px; font-family: var(--font-display); font-size: 13px; letter-spacing: 1px;
+  }
+  .balance-chip b { font-size: 18px; color: white; }
+
+  /* Turbo Market */
+  .market-section { margin: 18px 0 8px; }
+  .market-section h4 { margin: 0 0 4px; font-family: var(--font-display); letter-spacing: 1px; color: var(--navy); font-size: 15px; }
+  .market-section .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .shop-card {
+    border-radius: 14px; padding: 14px 12px; text-align: center; position: relative;
+    background: linear-gradient(180deg, #fffbe6, #fff0b8); border: 3px solid var(--gold-deep);
+    box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px;
+  }
+  .shop-card.special { background: linear-gradient(180deg, #fff0f5, #ffd3e2); border-color: #c2185b; }
+  .shop-card .sc-kind { font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--muted); }
+  .shop-card .sc-mult { font-family: var(--font-shade); font-size: 40px; line-height: 1; color: var(--red); }
+  .shop-card.special .sc-mult { color: #ad1457; }
+  .shop-card .sc-price { font-family: var(--font-display); font-size: 15px; color: var(--navy); }
+  .shop-card .sc-own { font-size: 12px; color: var(--muted); }
+  .shop-card .sc-own b { color: var(--navy); }
+  .qty { display: flex; justify-content: center; align-items: center; gap: 6px; }
+  .qty button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--navy); background: white; cursor: pointer; font-weight: 800; color: var(--navy); }
+  .qty input { width: 44px; text-align: center; padding: 4px; border: 2px solid var(--gold-deep); border-radius: 8px; font-weight: 700; }
+  .shop-card .btn { padding: 9px 12px; font-size: 12px; justify-content: center; }
+  .shop-card .sc-admin { border-top: 1px dashed rgba(0,0,0,0.2); padding-top: 8px; display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .shop-card .sc-admin input { width: 76px; padding: 5px 6px; border: 2px solid var(--blue-deep); border-radius: 6px; font-weight: 700; }
+  .shop-card .sc-admin button { border: 0; background: var(--blue-deep); color: white; border-radius: 6px; padding: 6px 8px; font-size: 11px; cursor: pointer; font-weight: 700; }
+  .how-box { margin-top: 20px; padding: 14px 16px; border: 2px dashed var(--gold-deep); border-radius: 12px; background: var(--cream); font-size: 13px; line-height: 1.55; }
+  .how-box b { color: var(--red); }
+
+  /* Rewards */
+  .reward-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin: 16px 0 6px; }
+  .reward-card {
+    border: 3px solid var(--gold); border-radius: 16px; padding: 16px; text-align: center;
+    background: white; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .coin {
+    width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center;
+    font-family: var(--font-display); font-size: 26px; color: rgba(0,0,0,0.35);
+    box-shadow: inset -6px -8px 14px rgba(0,0,0,0.25), inset 5px 6px 10px rgba(255,255,255,0.6), 0 6px 14px rgba(0,0,0,0.18);
+    border: 4px solid rgba(255,255,255,0.5);
+  }
+  .coin.gold   { background: radial-gradient(circle at 35% 30%, #fff7c2, #f6c400 55%, #b98500); }
+  .coin.silver { background: radial-gradient(circle at 35% 30%, #ffffff, #c9ced6 55%, #8a919c); }
+  .coin.bronze { background: radial-gradient(circle at 35% 30%, #ffe0c2, #d0894a 55%, #8e5222); }
+  .coin.other  { background: radial-gradient(circle at 35% 30%, #e1ecff, #6f9cf0 55%, #2a56b8); }
+  .reward-card .rc-name { font-family: var(--font-display); color: var(--navy); letter-spacing: 1px; font-size: 15px; }
+  .reward-card .rc-points { font-family: var(--font-display); color: var(--red); font-size: 18px; }
+  .reward-card .btn { padding: 9px 16px; font-size: 12px; }
+  .sub-panel { margin-top: 22px; padding-top: 18px; border-top: 2px dashed var(--gold-deep); }
+  .sub-panel h4 { margin: 0 0 10px; font-family: var(--font-display); letter-spacing: 1px; color: var(--navy); font-size: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sub-panel h4 select { font-family: var(--font-body); font-size: 13px; padding: 4px 8px; border: 2px solid var(--gold-deep); border-radius: 8px; }
+  .claim-row {
+    display: grid; grid-template-columns: 150px 1fr 90px 120px; gap: 10px; align-items: center;
+    padding: 9px 6px; border-bottom: 1px solid #f0e6c8; font-size: 13px;
+  }
+  .claim-row.admin { grid-template-columns: 140px 1fr 1fr 80px 110px; }
+  .claim-row:last-child { border-bottom: 0; }
+  .claim-row .c-date { color: var(--muted); font-size: 12px; }
+  .claim-row .c-pts { font-family: var(--font-display); color: var(--red); text-align: right; }
+  .claim-row .c-note { color: var(--muted); font-size: 11px; font-style: italic; }
+  .status-chip { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.5px; padding: 3px 10px; border-radius: 999px; text-align: center; justify-self: end; }
+  .status-chip.pending  { background: #fff1c2; color: #8a6200; border: 1px solid #d9a800; }
+  .status-chip.approved { background: #d8f5e5; color: var(--green-deep); border: 1px solid var(--green); }
+  .status-chip.rejected { background: #fde0e0; color: var(--red-deep); border: 1px solid var(--red); }
+  .pending-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px; border: 2px solid #ffd76a; background: #fffbe9; border-radius: 10px; margin-bottom: 8px; }
+  .pending-row .pr-actions { display: flex; gap: 8px; }
+  .pending-row .btn { padding: 7px 14px; font-size: 11px; }
+  .catalog-row { display: grid; grid-template-columns: 1fr 110px 120px 90px auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .catalog-row input, .catalog-row select { padding: 7px 8px; border: 2px solid var(--gold-deep); border-radius: 8px; font-size: 13px; width: 100%; }
+  .catalog-row .cr-actions { display: flex; gap: 6px; }
+  .catalog-row .cr-actions button { border: 0; border-radius: 6px; padding: 7px 10px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+  .catalog-row .cr-save { background: var(--blue-deep); }
+  .catalog-row .cr-del { background: var(--red); }
+  .catalog-row.head { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .empty-note { color: var(--muted); font-style: italic; text-align: center; padding: 16px; font-size: 13px; }
+
+  /* BackOffice: members + open bets */
+  .member-add { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 10px; margin-bottom: 14px; }
+  .member-add select, .member-add input { padding: 10px 12px; border: 2px solid var(--gold-deep); border-radius: 8px; font-size: 14px; background: white; }
+  .member-add .btn { padding: 10px 18px; font-size: 12px; }
+  .member-row { display: grid; grid-template-columns: 44px 1fr 1.4fr 1.3fr auto; gap: 10px; align-items: center; padding: 8px 4px; border-bottom: 1px solid #f0e6c8; font-size: 13px; }
+  .member-row:last-child { border-bottom: 0; }
+  .member-row .thumb { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gold); background: var(--line); }
+  .member-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .member-row .m-pic { font-weight: 700; color: var(--navy); }
+  .member-row .m-email { color: var(--ink); word-break: break-all; }
+  .member-row .m-status.active { color: var(--green-deep); font-weight: 700; }
+  .member-row .m-status.waiting { color: #8a6200; }
+  .member-row .code { font-family: var(--font-display); letter-spacing: 2px; background: var(--navy); color: var(--gold); padding: 2px 8px; border-radius: 6px; margin-left: 4px; }
+  .member-row .admin-badge { background: var(--red); color: white; font-family: var(--font-display); font-size: 9px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.5px; }
+  .member-row .m-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .mini-btn { border: 1.5px solid var(--navy); background: white; color: var(--navy); border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .mini-btn.danger { border-color: var(--red); color: var(--red); }
+  .mini-btn:hover { background: var(--navy); color: white; }
+  .mini-btn.danger:hover { background: var(--red); color: white; }
+  .bet-row { display: grid; grid-template-columns: 1fr 2fr 1.2fr 110px; gap: 10px; padding: 8px 4px; border-bottom: 1px solid #f0e6c8; font-size: 13px; align-items: center; }
+  .bet-row:last-child { border-bottom: 0; }
+  .bet-row .b-who { font-weight: 700; color: var(--navy); }
+  .bet-row .b-boost { font-size: 12px; color: #6a4192; }
+  .bet-row .b-time { font-size: 11px; color: var(--muted); text-align: right; }
+
+  /* Lottery Bet floating button + window */
+  .bet-fab {
+    position: fixed; right: 22px; bottom: 22px; z-index: 70;
+    display: flex; align-items: center; gap: 8px; padding: 14px 20px;
+    border-radius: 999px; border: 3px solid var(--gold); cursor: pointer;
+    background: linear-gradient(180deg, var(--red), var(--red-deep)); color: white;
+    font-family: var(--font-display); letter-spacing: 1px; font-size: 14px;
+    box-shadow: 0 10px 24px rgba(163, 20, 25, 0.4);
+    animation: fabPulse 2.4s ease-in-out infinite;
+  }
+  .bet-fab:hover { transform: translateY(-2px); }
+  .bet-fab-dot { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--green); border: 2px solid white; }
+  @keyframes fabPulse { 0%, 100% { box-shadow: 0 10px 24px rgba(163,20,25,0.4); } 50% { box-shadow: 0 10px 34px rgba(246,184,0,0.75); } }
+  .bet-window {
+    position: fixed; z-index: 80; width: min(380px, 94vw); max-height: min(78vh, 680px);
+    display: flex; flex-direction: column; background: var(--cream);
+    border: 3px solid var(--gold); border-radius: 16px; box-shadow: 0 20px 50px rgba(45,18,0,0.35);
+    overflow: hidden;
+  }
+  .bet-win-head {
+    display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 10px 16px;
+    background: linear-gradient(180deg, var(--red), var(--red-deep)); color: white;
+    font-family: var(--font-display); letter-spacing: 1.5px; font-size: 14px;
+    cursor: grab; user-select: none; touch-action: none;
+  }
+  .bet-win-head.dragging { cursor: grabbing; }
+  .bet-win-min { width: 30px; height: 30px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.15); color: white; font-size: 18px; font-weight: 800; cursor: pointer; line-height: 1; }
+  .bet-win-min:hover { background: rgba(255,255,255,0.3); }
+  .bet-win-body { padding: 14px 16px 16px; overflow-y: auto; font-size: 13px; }
+  .bet-status { padding: 8px 10px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.4; }
+  .bet-status.saved { background: #d8f5e5; border: 1px solid var(--green); color: var(--green-deep); }
+  .bet-status.none { background: #fff1c2; border: 1px solid #d9a800; color: #6b4d00; }
+  .bet-slot { display: grid; grid-template-columns: 70px 40px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .bet-slot .bs-place { font-family: var(--font-display); font-size: 11px; color: var(--navy); letter-spacing: 0.5px; }
+  .bet-slot .bs-thumb { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: var(--line); border: 2px solid var(--gold); display: grid; place-items: center; color: var(--muted); font-size: 16px; }
+  .bet-slot .bs-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .bet-slot.special-on .bs-thumb { border-color: #c2185b; box-shadow: 0 0 0 3px rgba(194,24,91,0.25); }
+  .bet-window select { width: 100%; padding: 8px 10px; border: 2px solid var(--gold-deep); border-radius: 8px; font-size: 13px; background: white; font-family: var(--font-body); }
+  .bet-boosts { margin: 12px 0; padding: 10px; border: 2px dashed var(--gold-deep); border-radius: 10px; background: white; display: grid; gap: 8px; }
+  .bet-boosts label { font-size: 11px; font-weight: 700; color: var(--navy); letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .bet-boosts .row2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+  .bet-hint { font-size: 11px; color: var(--muted); line-height: 1.45; margin-bottom: 12px; }
+  .bet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bet-actions .btn { padding: 10px 14px; font-size: 12px; flex: 1; justify-content: center; }
+  .bet-err { color: var(--red); font-weight: 600; font-size: 12px; margin: 6px 0; min-height: 1em; }
+  .bet-last { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--gold-deep); font-size: 12px; }
+  .bet-last b { color: var(--red); }
+  .bet-last ul { margin: 6px 0 0; padding-left: 18px; }
+
+  /* Point history: new entry types */
+  .history-row .h-type.bet { background: linear-gradient(180deg, #c8f2dc, #7fd8a8); color: #0e5532; border: 1px solid var(--green-deep); }
+  .history-row .h-type.buy { background: linear-gradient(180deg, #ead9f7, #c6a3e6); color: #3d1f5c; border: 1px solid #6a4192; }
+  .history-row .h-type.claim { background: linear-gradient(180deg, #ffe0c2, #ffb07a); color: #6b3000; border: 1px solid #c25a00; }
+  .history-row .h-type.refund { background: linear-gradient(180deg, #ccf3f6, #8fdde4); color: #0b4f56; border: 1px solid #13909c; }
+
+  @media (max-width: 720px) {
+    .wallet { margin-left: 0; width: 100%; }
+    .wallet-col { min-width: 56px; padding: 3px 8px; }
+    .wallet-col .w-count { font-size: 15px; }
+    .wallet-points { font-size: 15px; }
+    .member-add { grid-template-columns: 1fr; }
+    .member-row { grid-template-columns: 40px 1fr auto; }
+    .member-row .m-email, .member-row .m-status { grid-column: 2 / -1; }
+    .member-row .m-actions { grid-column: 1 / -1; }
+    .bet-row { grid-template-columns: 1fr 1fr; }
+    .claim-row, .claim-row.admin { grid-template-columns: 1fr auto; }
+    .catalog-row { grid-template-columns: 1fr 1fr; }
+    .bet-fab { right: 14px; bottom: 14px; padding: 12px 16px; font-size: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -806,13 +1040,26 @@
     <div class="brand">
       <img class="brand-logo" src="favicon.svg" alt="bluePi Lotto" />
       <div>bluePi&nbsp;Lotto</div>
+      <!-- V3: Turbo stock + points balance (logged-in players only) -->
+      <div class="wallet user-only locked" id="wallet">
+        <button class="wallet-col" data-wallet="turbo" title="Your Turbos">
+          <span class="w-label">TURBO</span><span class="w-count" id="w-turbo">0</span>
+        </button>
+        <button class="wallet-col special" data-wallet="special" title="Your Special Turbos">
+          <span class="w-label">SPECIAL</span><span class="w-count" id="w-special">0</span>
+        </button>
+        <div class="wallet-points" title="Your current points balance"><span id="w-points">0</span><small>PTS</small></div>
+        <div class="wallet-pop hidden" id="wallet-pop"></div>
+      </div>
     </div>
     <div class="nav-cluster">
       <nav class="tabs" id="tabs">
         <button class="tab active" data-view="home">HOME</button>
-        <button class="tab admin-only locked" data-view="backoffice">BACKOFFICE</button>
+        <button class="tab user-only locked" data-view="turbo-market">TURBO&nbsp;MARKET</button>
+        <button class="tab user-only locked" data-view="rewards">REWARDS</button>
         <button class="tab" data-view="history">HISTORY</button>
         <button class="tab" data-view="player-ranking">PLAYER&nbsp;RANKING</button>
+        <button class="tab admin-only locked" data-view="backoffice">BACKOFFICE</button>
       </nav>
       <button class="btn-auth" id="btn-auth">LOG-IN</button>
     </div>
@@ -868,6 +1115,21 @@
       <div id="pool-host"></div>
     </div>
     <div class="panel">
+      <h3>Members (email ↔ picture)</h3>
+      <div class="sub">Only emails listed here can create an account. Each email maps to exactly one picture (1:1). Give each person their <b>activation code</b>; they use it once to set their own password.</div>
+      <div class="member-add">
+        <select id="member-pic"></select>
+        <input type="email" id="member-email" placeholder="name@company.com" maxlength="120" />
+        <button class="btn btn-primary" id="btn-add-member">Add member</button>
+      </div>
+      <div id="members-host"></div>
+    </div>
+    <div class="panel">
+      <h3>Open Lottery Bets</h3>
+      <div class="sub">Bets placed for the next round. They are settled automatically when you press Play.</div>
+      <div id="open-bets-host"></div>
+    </div>
+    <div class="panel">
       <h3>Home Page Messages</h3>
       <div class="sub">These five editable boxes appear on the public Home Page. They can also be edited inline by clicking them while logged in.</div>
       <div class="settings-grid" id="settings-grid"></div>
@@ -894,7 +1156,7 @@
       <div class="ranking-header">
         <div>
           <h3>Player Ranking</h3>
-          <div class="sub">All players sorted by all-time total points. Click a player to see their point history.</div>
+          <div class="sub">All players sorted by current points balance. Click a player to see their point history.</div>
         </div>
         <div class="year-picker">
           <label for="year-select">History year</label>
@@ -904,6 +1166,44 @@
       <div id="player-ranking-host"></div>
     </div>
   </section>
+
+  <!-- V3: Turbo Market -->
+  <section id="view-turbo-market" class="hidden">
+    <div class="ranking-list">
+      <div class="ranking-header">
+        <div>
+          <h3>Turbo Market</h3>
+          <div class="sub">Spend points on boosts for your Lottery Bet. Boosts you attach to a bet are used up when the admin plays the round.</div>
+        </div>
+        <div class="balance-chip">Balance <b id="market-balance">0</b> pts</div>
+      </div>
+      <div id="market-host"></div>
+    </div>
+  </section>
+
+  <!-- V3: Rewards -->
+  <section id="view-rewards" class="hidden">
+    <div class="ranking-list">
+      <div class="ranking-header">
+        <div>
+          <h3>Rewards</h3>
+          <div class="sub">Claim prizes with your points. Points are held when you request; the admin approves or rejects (rejected requests are refunded).</div>
+        </div>
+        <div class="balance-chip">Balance <b id="rewards-balance">0</b> pts</div>
+      </div>
+      <div id="rewards-host"></div>
+    </div>
+  </section>
+</div>
+
+<!-- V3: Lottery Bet floating button + draggable mini-window (Home page, logged-in players) -->
+<button class="bet-fab hidden" id="bet-fab" title="Open Lottery Bet">🎟️ <span>Lottery Bet</span><i class="bet-fab-dot hidden" id="bet-fab-dot"></i></button>
+<div class="bet-window hidden" id="bet-window" role="dialog" aria-label="Lottery Bet">
+  <div class="bet-win-head" id="bet-win-head">
+    <span>🎟️ LOTTERY BET</span>
+    <button class="bet-win-min" id="bet-win-min" title="Minimize">–</button>
+  </div>
+  <div class="bet-win-body" id="bet-win-body"></div>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -980,6 +1280,21 @@ const State = {
   isAdmin: false,
   loading: true,
   error: null,
+  // ---- V3 ----
+  session: null,          // Supabase auth session (null when logged out)
+  me: null,               // my members row { email, picture_id, is_admin, ... }
+  isUser: false,          // logged in AND mapped to a picture
+  members: [],            // admin only
+  shopItems: [],
+  inventory: [],          // my rows (admin receives everyone's; filtered by player_id)
+  myBets: [],             // my recent bets (open + settled)
+  openBets: [],           // admin only
+  rewardItems: [],
+  claims: [],             // mine (user) or everyone's (admin)
+  claimsYear: null,
+  betDraft: null,         // in-progress edits in the Lottery Bet window
+  betWindowOpen: false,
+  betPos: null,           // { left, top } of the draggable window
 };
 
 const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -1251,6 +1566,197 @@ const Store = {
   },
 };
 
+/* ---------- V3 data access ---------- */
+Object.assign(Store, {
+  async getMe() {
+    const uid = State.session && State.session.user && State.session.user.id;
+    if (!uid) return null;
+    const { data, error } = await sb.from("members").select("*").eq("user_id", uid).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+  async listMembers() {
+    const { data, error } = await sb.from("members").select("*").order("email");
+    if (error) throw error;
+    return data || [];
+  },
+  async addMember(email, picture_id) {
+    const { data, error } = await sb.from("members").insert({ email, picture_id }).select().single();
+    if (error) throw error;
+    return data;
+  },
+  async removeMember(email) {
+    const { error } = await sb.from("members").delete().eq("email", email);
+    if (error) throw error;
+  },
+  async resetMember(email) {
+    const { data, error } = await sb.rpc("admin_reset_member", { p_email: email });
+    if (error) throw error;
+    return data;
+  },
+  async listShopItems() {
+    const { data, error } = await sb.from("shop_items").select("*").order("sort");
+    if (error) throw error;
+    return data || [];
+  },
+  async updateShopItem(key, fields) {
+    const { error } = await sb.from("shop_items").update(fields).eq("key", key);
+    if (error) throw error;
+  },
+  async listInventory() {
+    const { data, error } = await sb.from("inventory").select("*");
+    if (error) throw error;
+    return data || [];
+  },
+  async buyItem(key, qty) {
+    const { data, error } = await sb.rpc("buy_item", { p_key: key, p_qty: qty });
+    if (error) throw error;
+    return data;
+  },
+  async listMyBets(playerId) {
+    const { data, error } = await sb.from("bets").select("*").eq("player_id", playerId)
+      .order("updated_at", { ascending: false }).limit(5);
+    if (error) throw error;
+    return data || [];
+  },
+  async listOpenBets() {
+    const { data, error } = await sb.from("bets").select("*").eq("status", "open").order("updated_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+  async placeBet(d) {
+    const { data, error } = await sb.rpc("place_bet", {
+      p_pick1: d.pick1, p_pick2: d.pick2, p_pick3: d.pick3,
+      p_turbo: d.turbo || null, p_special: d.special || null,
+      p_special_place: d.special ? Number(d.specialPlace) || null : null,
+    });
+    if (error) throw error;
+    return data;
+  },
+  async cancelBet() {
+    const { error } = await sb.rpc("cancel_bet");
+    if (error) throw error;
+  },
+  async settleBets(roundId) {
+    const { data, error } = await sb.rpc("settle_bets", { p_round_id: roundId });
+    if (error) throw error;
+    return data;
+  },
+  async listRewardItems() {
+    const { data, error } = await sb.from("reward_items").select("*").order("sort").order("points", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+  async saveRewardItem(item) {
+    const row = { name: item.name, points: item.points, tier: item.tier, active: item.active };
+    if (item.id) {
+      const { error } = await sb.from("reward_items").update(row).eq("id", item.id);
+      if (error) throw error;
+    } else {
+      row.sort = (State.rewardItems.reduce((m, r) => Math.max(m, r.sort || 0), 0)) + 1;
+      const { error } = await sb.from("reward_items").insert(row);
+      if (error) throw error;
+    }
+  },
+  async deleteRewardItem(id) {
+    const { error } = await sb.from("reward_items").delete().eq("id", id);
+    if (error) throw error;
+  },
+  async listClaims() {
+    const { data, error } = await sb.from("reward_claims").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+  async requestReward(id) {
+    const { data, error } = await sb.rpc("request_reward", { p_reward_id: id });
+    if (error) throw error;
+    return data;
+  },
+  async decideClaim(id, approve, note) {
+    const { error } = await sb.rpc("decide_claim", { p_claim_id: id, p_approve: approve, p_note: note || null });
+    if (error) throw error;
+  },
+});
+
+/** Turn server error codes into friendly messages. */
+function friendlyError(err) {
+  const msg = (err && (err.message || err.details)) || String(err || "");
+  const map = {
+    INSUFFICIENT_POINTS: "You don't have enough points for this.",
+    NOT_A_MEMBER: "Your account isn't linked to a picture yet. Ask the admin.",
+    NEED_THREE_PICKS: "Pick a picture for all three places.",
+    PICKS_MUST_DIFFER: "Your three picks must be different pictures.",
+    PICTURE_NOT_FOUND: "One of your picks no longer exists. Please pick again.",
+    NO_TURBO_IN_STOCK: "You don't have that Turbo anymore. Buy one in Turbo Market.",
+    NO_SPECIAL_IN_STOCK: "You don't have that Special Turbo anymore. Buy one in Turbo Market.",
+    SPECIAL_NEEDS_PLACE: "Choose which place (1st, 2nd or 3rd) gets the Special Turbo.",
+    NOT_ADMIN: "Only the admin can do this.",
+    ALREADY_DECIDED: "This request was already approved or rejected.",
+    CANNOT_RESET_YOURSELF: "You can't reset your own account here.",
+    CANNOT_REMOVE_YOURSELF: "You can't remove your own account (or your own picture).",
+    BAD_QTY: "Quantity must be between 1 and 99.",
+    ITEM_NOT_FOUND: "That item is no longer for sale.",
+    REWARD_NOT_FOUND: "That reward is no longer available.",
+    ROUND_NOT_FOUND: "That round no longer exists.",
+  };
+  for (const code of Object.keys(map)) if (msg.includes(code)) return map[code];
+  if (/members_pkey|duplicate key.*email/i.test(msg)) return "That email is already registered.";
+  if (/members_picture_id_key/i.test(msg)) return "That picture already has an email. 1 picture = 1 email.";
+  if (/members_email_check/i.test(msg)) return "Email must be lowercase.";
+  if (/could not find the function|schema cache|does not exist/i.test(msg)) return "The database upgrade hasn't been run yet (migration_v3_live.sql).";
+  return msg || "Something went wrong.";
+}
+
+/** Load everything that depends on who is logged in. */
+async function loadUserData() {
+  const tasks = [];
+  if (State.isUser || State.isAdmin) {
+    tasks.push(Store.listShopItems().then(d => State.shopItems = d).catch(e => console.warn("shop_items", e)));
+    tasks.push(Store.listInventory().then(d => State.inventory = d).catch(e => console.warn("inventory", e)));
+    tasks.push(Store.listRewardItems().then(d => State.rewardItems = d).catch(e => console.warn("reward_items", e)));
+    tasks.push(Store.listClaims().then(d => State.claims = d).catch(e => console.warn("reward_claims", e)));
+    if (State.me) tasks.push(Store.listMyBets(State.me.picture_id).then(d => State.myBets = d).catch(e => console.warn("bets", e)));
+  } else {
+    Object.assign(State, { shopItems: [], inventory: [], rewardItems: [], claims: [], myBets: [] });
+  }
+  if (State.isAdmin) {
+    tasks.push(Store.listMembers().then(d => State.members = d).catch(e => console.warn("members", e)));
+    tasks.push(Store.listOpenBets().then(d => State.openBets = d).catch(e => console.warn("open bets", e)));
+  } else {
+    State.members = []; State.openBets = [];
+  }
+  await Promise.all(tasks);
+}
+
+let _userReloadTimer = null;
+function scheduleUserReload() {
+  clearTimeout(_userReloadTimer);
+  _userReloadTimer = setTimeout(async () => {
+    await loadUserData();
+    // If the player has no unsaved edits, keep the bet window in sync with the server
+    // (e.g. their bet was just settled by Play, or cancelled because a picture was removed).
+    if (State.betDraft && !State.betDraft.dirty) State.betDraft = draftFromBet(myOpenBet());
+    render(); renderWallet(); renderBetUI();
+  }, 150);
+}
+
+/** My current points balance (non-revoked sum). */
+function myBalance() {
+  if (!State.me) return 0;
+  return State.pointHistory
+    .filter(e => e.player_id === State.me.picture_id && !e.revoked_at)
+    .reduce((s, e) => s + (Number(e.delta) || 0), 0);
+}
+function myInventory() {
+  if (!State.me) return [];
+  return State.inventory.filter(i => i.player_id === State.me.picture_id && i.qty > 0);
+}
+function shopItem(key) { return State.shopItems.find(s => s.key === key); }
+function multText(m) { return Number(m).toString() + "x"; }
+function itemLabel(it) { return it ? `${it.kind === "turbo" ? "Turbo" : "Special Turbo"} ${multText(it.multiplier)}` : ""; }
+function picName(id) { const p = State.pictures.find(x => x.id === id); return p ? p.name : "(removed)"; }
+function picUrl(id) { const p = State.pictures.find(x => x.id === id); return p ? p.imageUrl : ""; }
+
 /* ---------- Realtime ---------- */
 let rtChannel;
 async function subscribeAll() {
@@ -1270,8 +1776,15 @@ async function subscribeAll() {
       try { State.settings = await Store.listSettings(); render(); } catch (e) { console.error(e); }
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "point_history" }, async () => {
-      try { State.pointHistory = await Store.listPointHistory(); render(); } catch (e) { console.error(e); }
+      try { State.pointHistory = await Store.listPointHistory(); render(); renderWallet(); renderBetUI(); } catch (e) { console.error(e); }
     })
+    // V3 tables (private ones only deliver my own rows — RLS applies to realtime)
+    .on("postgres_changes", { event: "*", schema: "public", table: "shop_items" }, scheduleUserReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "inventory" }, scheduleUserReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "bets" }, scheduleUserReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "reward_items" }, scheduleUserReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "reward_claims" }, scheduleUserReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "members" }, async () => { await refreshAuthState(); })
     .subscribe();
 }
 
@@ -1340,67 +1853,187 @@ function hideDrawingOverlay() { const ov = $("#drawing-overlay"); if (ov) ov.rem
 
 /* ---------- Auth ---------- */
 function updateAuthUI() {
+  State.isAdmin = !!(State.me && State.me.is_admin);
+  State.isUser = !!State.me;
   document.body.classList.toggle("is-admin", State.isAdmin);
+  document.body.classList.toggle("is-user", State.isUser);
   $$(".admin-only").forEach(el => el.classList.toggle("locked", !State.isAdmin));
+  $$(".user-only").forEach(el => el.classList.toggle("locked", !State.isUser));
   const btn = $("#btn-auth");
-  if (State.isAdmin) { btn.textContent = "Log Out"; btn.classList.add("logged-in"); }
+  if (State.session) { btn.textContent = "Log Out"; btn.classList.add("logged-in"); }
   else { btn.textContent = "Log-In"; btn.classList.remove("logged-in"); }
+  // Leave pages the current account can't see
+  if ((currentView === "backoffice" && !State.isAdmin) ||
+      ((currentView === "turbo-market" || currentView === "rewards") && !State.isUser)) {
+    setView("home");
+  }
+  renderWallet();
+  renderBetUI();
 }
 
-/** Convert "Admin" → "admin@bluepi.local" so users can type the short name from the original spec. */
-function normalizeLoginEmail(s) {
-  s = (s || "").trim();
-  if (!s) return s;
-  if (s.includes("@")) return s.toLowerCase();
-  return s.toLowerCase() + "@bluepi.local";
+/** Re-read session + my member row, then refresh role-dependent data and UI. */
+let _authBusy = null;
+async function refreshAuthState() {
+  if (_authBusy) return _authBusy;
+  _authBusy = (async () => {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      State.session = session || null;
+      State.me = session ? await Store.getMe() : null;
+      if (session && !State.me) {
+        // Logged in but no longer (or never) linked to a picture → sign out.
+        await sb.auth.signOut();
+        State.session = null;
+        toast("This account isn't registered for bluePi Lotto. Ask the admin to add your email.", "error");
+      }
+    } catch (e) {
+      console.warn("auth refresh failed", e);
+      State.me = null;
+    }
+    updateAuthUI();
+    await loadUserData();
+    render(); renderWallet(); renderBetUI();
+  })();
+  try { await _authBusy; } finally { _authBusy = null; }
 }
 
-async function openLoginModal() {
-  await modal({
-    title: "Admin Log In",
+/* ----- Password field with an eye button ----- */
+const EYE_OPEN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_SHUT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a20.4 20.4 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+function pwField(id, autocomplete, placeholder = "") {
+  return `<div class="pw-wrap">
+    <input type="password" id="${id}" autocomplete="${autocomplete}" placeholder="${escapeHtml(placeholder)}" />
+    <button type="button" class="pw-eye" data-eye="${id}" title="Show password" aria-label="Show password">${EYE_OPEN}</button>
+  </div>`;
+}
+function wirePwEyes(root) {
+  root.querySelectorAll("[data-eye]").forEach(btn => {
+    btn.onclick = () => {
+      const input = root.querySelector("#" + btn.dataset.eye);
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.innerHTML = show ? EYE_SHUT : EYE_OPEN;
+      btn.title = show ? "Hide password" : "Show password";
+      btn.setAttribute("aria-label", btn.title);
+      input.focus();
+    };
+  });
+}
+
+async function openLoginModal(prefillEmail = "") {
+  const p = modal({
+    title: "Log In",
     html: `
-      <p>Enter the admin credentials to access BackOffice features.</p>
-      <label for="m-user">Email or username</label>
-      <input type="text" id="m-user" placeholder="admin@bluepi.local or Admin" autocomplete="username" />
+      <label for="m-user">Email</label>
+      <input type="text" id="m-user" inputmode="email" placeholder="name@company.com" autocomplete="username" value="${escapeHtml(prefillEmail)}" />
       <label for="m-pass">Password</label>
-      <input type="password" id="m-pass" autocomplete="current-password" />
+      ${pwField("m-pass", "current-password")}
+      <div class="modal-switch">First time here? <button type="button" class="link-btn" id="go-activate">Activate your account</button></div>
       <div class="error" id="m-err"></div>`,
     confirmText: "Log In",
     onConfirm: async (m) => {
-      const userRaw = m.querySelector("#m-user").value.trim();
+      const email = m.querySelector("#m-user").value.trim().toLowerCase();
       const pass = m.querySelector("#m-pass").value;
       const err = m.querySelector("#m-err");
       err.textContent = "";
-      if (!userRaw || !pass) { err.textContent = "Both fields are required."; return false; }
-      const email = normalizeLoginEmail(userRaw);
+      if (!email || !pass) { err.textContent = "Enter your email and password."; return false; }
       try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
         if (error) throw error;
-        State.isAdmin = true;
-        updateAuthUI();
-        toast("Logged in.", "success");
-        render();
+        await refreshAuthState();
+        if (State.me) toast(`Welcome, ${picName(State.me.picture_id)}!`, "success");
       } catch (e) {
-        err.textContent = "Login failed: " + (e.message || "invalid credentials");
+        err.textContent = /invalid login credentials/i.test(e.message || "")
+          ? "Wrong email or password. First time? Use “Activate your account”."
+          : "Login failed: " + (e.message || "please try again");
         return false;
       }
     },
   });
+  const m = $("#modal");
+  wirePwEyes(m);
+  const go = m.querySelector("#go-activate");
+  if (go) go.onclick = () => {
+    const email = m.querySelector("#m-user").value.trim();
+    $("#m-cancel").click();
+    setTimeout(() => openActivateModal(email), 60);
+  };
+  setTimeout(() => { const i = m.querySelector(prefillEmail ? "#m-pass" : "#m-user"); if (i) i.focus(); }, 30);
+  return p;
+}
+
+/** First login: email + activation code from the admin + new password (min 8). */
+async function openActivateModal(prefillEmail = "") {
+  const p = modal({
+    title: "Activate your account",
+    html: `
+      <p>Use the email the admin registered for you and the <b>activation code</b> they gave you. Then create your own password.</p>
+      <label for="a-email">Email</label>
+      <input type="text" id="a-email" inputmode="email" placeholder="name@company.com" autocomplete="username" value="${escapeHtml(prefillEmail)}" />
+      <label for="a-code">Activation code</label>
+      <input type="text" id="a-code" class="code-input" maxlength="12" placeholder="e.g. 7F3A9C21" autocomplete="one-time-code" />
+      <label for="a-pass">New password</label>
+      ${pwField("a-pass", "new-password", "At least 8 characters")}
+      <label for="a-pass2">Confirm new password</label>
+      ${pwField("a-pass2", "new-password", "Type it again")}
+      <div class="modal-switch">Already activated? <button type="button" class="link-btn" id="go-login">Log in</button></div>
+      <div class="error" id="a-err"></div>`,
+    confirmText: "Activate",
+    onConfirm: async (m) => {
+      const email = m.querySelector("#a-email").value.trim().toLowerCase();
+      const code = m.querySelector("#a-code").value.trim().toUpperCase();
+      const pass = m.querySelector("#a-pass").value;
+      const pass2 = m.querySelector("#a-pass2").value;
+      const err = m.querySelector("#a-err");
+      err.textContent = "";
+      if (!email || !code) { err.textContent = "Enter your email and activation code."; return false; }
+      if (pass.length < 8) { err.textContent = "Password must be at least 8 characters."; return false; }
+      if (pass !== pass2) { err.textContent = "The two passwords don't match."; return false; }
+      try {
+        const { data: check, error: cErr } = await sb.rpc("check_activation", { p_email: email, p_code: code });
+        if (cErr) throw cErr;
+        if (check !== "ok") {
+          err.textContent = "Email or activation code is not valid. If you already activated, use Log in; otherwise ask the admin for a new code.";
+          return false;
+        }
+        const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { activation_code: code } } });
+        if (error) throw error;
+        if (!data.session) {
+          // Supabase "Confirm email" is still ON → no session yet.
+          err.textContent = "Account created, but email confirmation is turned on in Supabase. Ask the admin to turn off “Confirm email”, then log in.";
+          return false;
+        }
+        await refreshAuthState();
+        toast(`Account activated. Welcome, ${State.me ? picName(State.me.picture_id) : email}!`, "success");
+      } catch (e) {
+        err.textContent = /password/i.test(e.message || "") ? e.message : "Activation failed: " + friendlyError(e);
+        return false;
+      }
+    },
+  });
+  const m = $("#modal");
+  wirePwEyes(m);
+  const go = m.querySelector("#go-login");
+  if (go) go.onclick = () => {
+    const email = m.querySelector("#a-email").value.trim();
+    $("#m-cancel").click();
+    setTimeout(() => openLoginModal(email), 60);
+  };
+  setTimeout(() => { const i = m.querySelector(prefillEmail ? "#a-code" : "#a-email"); if (i) i.focus(); }, 30);
+  return p;
 }
 
 async function logout() {
   const ok = await modal({
     title: "Log out?",
-    body: "You'll lose access to BackOffice features until you log in again.",
+    body: "You'll need your email and password to log back in.",
     confirmText: "Log Out",
     danger: true,
   });
   if (!ok) return;
   await sb.auth.signOut();
-  State.isAdmin = false;
-  updateAuthUI();
-  if (currentView === "backoffice") setView("home");
-  render();
+  State.betWindowOpen = false; State.betDraft = null;
+  await refreshAuthState();
   toast("Logged out.", "success");
 }
 
@@ -1408,13 +2041,17 @@ async function logout() {
 let currentView = "home";
 function setView(v) {
   if (v === "backoffice" && !State.isAdmin) { openLoginModal(); return; }
+  if ((v === "turbo-market" || v === "rewards") && !State.isUser) { openLoginModal(); return; }
   currentView = v;
   $$("#tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.view === v));
   $("#view-home").classList.toggle("hidden", v !== "home");
   $("#view-backoffice").classList.toggle("hidden", v !== "backoffice");
   $("#view-history").classList.toggle("hidden", v !== "history");
   $("#view-player-ranking").classList.toggle("hidden", v !== "player-ranking");
+  $("#view-turbo-market").classList.toggle("hidden", v !== "turbo-market");
+  $("#view-rewards").classList.toggle("hidden", v !== "rewards");
   render();
+  renderBetUI();
 }
 
 function render() {
@@ -1423,6 +2060,8 @@ function render() {
   else if (currentView === "backoffice") renderBackOffice();
   else if (currentView === "history") renderHistory();
   else if (currentView === "player-ranking") renderPlayerRanking();
+  else if (currentView === "turbo-market") renderTurboMarket();
+  else if (currentView === "rewards") renderRewards();
 }
 
 function renderHome() {
@@ -1754,6 +2393,600 @@ function renderBackOffice() {
       <input type="text" data-setting="${def.key}" value="${escapeHtml(State.settings[def.key] || "")}" maxlength="200">`;
     sg.appendChild(row);
   }
+  renderMembersPanel();
+  renderOpenBetsPanel();
+}
+
+/* ===== V3 BackOffice: members (email ↔ picture, 1:1) ===== */
+function renderMembersPanel() {
+  const sel = $("#member-pic");
+  const mapped = new Set(State.members.map(m => m.picture_id));
+  const free = [...State.pictures].filter(p => !mapped.has(p.id)).sort((a, b) => a.name.localeCompare(b.name));
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">— Picture (${free.length} without email) —</option>` +
+    free.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+  if (free.some(p => p.id === prev)) sel.value = prev;
+
+  const host = $("#members-host");
+  if (State.members.length === 0) {
+    host.innerHTML = `<div class="empty-note">No members yet. Add an email above.</div>`;
+    return;
+  }
+  const rows = [...State.members].sort((a, b) => picName(a.picture_id).localeCompare(picName(b.picture_id)));
+  host.innerHTML = rows.map(m => {
+    const url = picUrl(m.picture_id);
+    const status = m.user_id
+      ? `<span class="m-status active">✓ Active${m.activated_at ? " since " + new Date(m.activated_at).toLocaleDateString() : ""}</span>`
+      : `<span class="m-status waiting">Waiting · code <span class="code">${escapeHtml(m.activation_code || "—")}</span></span>`;
+    const isMe = State.me && m.email === State.me.email;
+    return `
+      <div class="member-row">
+        <div class="thumb">${url ? `<img src="${escapeHtml(url)}" alt="">` : ""}</div>
+        <div class="m-pic">${escapeHtml(picName(m.picture_id))}${m.is_admin ? '<span class="admin-badge">ADMIN</span>' : ""}</div>
+        <div class="m-email">${escapeHtml(m.email)}</div>
+        <div>${status}</div>
+        <div class="m-actions">
+          ${m.user_id ? "" : `<button class="mini-btn" data-copy="${escapeHtml(m.activation_code || "")}">Copy code</button>`}
+          ${isMe ? "" : `<button class="mini-btn" data-reset="${escapeHtml(m.email)}">${m.user_id ? "Reset password" : "New code"}</button>`}
+          ${isMe ? "" : `<button class="mini-btn danger" data-remove="${escapeHtml(m.email)}">Remove</button>`}
+        </div>
+      </div>`;
+  }).join("");
+  host.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast("Activation code copied.", "success"); }
+    catch (e) { toast("Code: " + b.dataset.copy); }
+  });
+  host.querySelectorAll("[data-reset]").forEach(b => b.onclick = () => resetMemberFlow(b.dataset.reset));
+  host.querySelectorAll("[data-remove]").forEach(b => b.onclick = () => removeMemberFlow(b.dataset.remove));
+}
+
+async function addMemberFlow() {
+  if (!State.isAdmin) return;
+  const pid = $("#member-pic").value;
+  const email = $("#member-email").value.trim().toLowerCase();
+  if (!pid) { toast("Choose a picture first.", "error"); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Enter a valid email address.", "error"); return; }
+  const ok = await modal({
+    title: "Add member?",
+    body: `<b>${escapeHtml(email)}</b> will be linked to <b>${escapeHtml(picName(pid))}</b>. An activation code is created for their first login.`,
+    confirmText: "Add",
+  });
+  if (!ok) return;
+  try {
+    const row = await Store.addMember(email, pid);
+    $("#member-email").value = "";
+    State.members = await Store.listMembers();
+    renderMembersPanel();
+    await modal({
+      title: "Member added",
+      html: `<p>Send this to <b>${escapeHtml(picName(pid))}</b>:</p>
+        <div class="form-info">Website: <b>${escapeHtml(location.href.split("?")[0])}</b><br>Email: <b>${escapeHtml(email)}</b><br>Activation code: <b style="letter-spacing:2px">${escapeHtml(row.activation_code || "")}</b></div>
+        <p style="font-size:12px;color:var(--muted)">They click Log-In → “Activate your account”, enter the code and choose a password (min 8 characters). The code works once.</p>`,
+      confirmText: "Done", hideCancel: true,
+    });
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+async function resetMemberFlow(email) {
+  const m = State.members.find(x => x.email === email);
+  if (!m) return;
+  const ok = await modal({
+    title: m.user_id ? "Reset this account?" : "Issue a new code?",
+    body: m.user_id
+      ? `<b>${escapeHtml(email)}</b> will be logged out and must activate again with a new code to set a new password. Their points, Turbos and history are kept.`
+      : `The old activation code for <b>${escapeHtml(email)}</b> will stop working.`,
+    confirmText: m.user_id ? "Reset" : "New code", danger: !!m.user_id,
+  });
+  if (!ok) return;
+  try {
+    const code = await Store.resetMember(email);
+    State.members = await Store.listMembers();
+    renderMembersPanel();
+    toast(`New activation code for ${email}: ${code}`, "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+async function removeMemberFlow(email) {
+  const ok = await modal({
+    title: "Remove member?",
+    body: `<b>${escapeHtml(email)}</b> will no longer be able to log in and their open bet is cancelled. The picture, points and history stay.`,
+    confirmText: "Remove", danger: true,
+  });
+  if (!ok) return;
+  try {
+    await Store.removeMember(email);
+    State.members = await Store.listMembers();
+    renderMembersPanel();
+    toast("Member removed.", "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+/* ===== V3: wallet next to the logo (Turbo / Special Turbo stock + balance) ===== */
+function renderWallet() {
+  const w = $("#wallet");
+  if (!w) return;
+  if (!State.isUser) { $("#wallet-pop").classList.add("hidden"); return; }
+  const inv = myInventory();
+  const count = kind => inv.filter(i => (shopItem(i.item_key) || {}).kind === kind).reduce((s, i) => s + i.qty, 0);
+  $("#w-turbo").textContent = count("turbo");
+  $("#w-special").textContent = count("special");
+  $("#w-points").textContent = myBalance().toLocaleString();
+  const pop = $("#wallet-pop");
+  if (!pop.classList.contains("hidden")) fillWalletPop(pop.dataset.kind);
+}
+
+function fillWalletPop(kind) {
+  const pop = $("#wallet-pop");
+  pop.dataset.kind = kind;
+  const items = State.shopItems.filter(s => s.kind === kind);
+  const own = Object.fromEntries(myInventory().map(i => [i.item_key, i.qty]));
+  const open = State.myBets.find(b => b.status === "open");
+  const inUse = open ? (kind === "turbo" ? open.turbo_key : open.special_key) : null;
+  pop.innerHTML = `
+    <h4>${kind === "turbo" ? "YOUR TURBOS" : "YOUR SPECIAL TURBOS"}</h4>
+    ${items.map(s => `<div class="wp-row${own[s.key] ? "" : " zero"}"><span>${escapeHtml(itemLabel(s))}${inUse === s.key ? " · <i>on your bet</i>" : ""}</span><b>× ${own[s.key] || 0}</b></div>`).join("") || '<div class="empty-note">Nothing yet.</div>'}
+    <div class="wp-foot"><span style="font-size:11px;color:var(--muted)">Used up when the round is played.</span>
+      <button class="mini-btn" id="wp-shop">Turbo Market →</button></div>`;
+  pop.querySelector("#wp-shop").onclick = () => { pop.classList.add("hidden"); setView("turbo-market"); };
+}
+
+$$("[data-wallet]").forEach(btn => btn.onclick = (e) => {
+  e.stopPropagation();
+  const pop = $("#wallet-pop");
+  const kind = btn.dataset.wallet;
+  if (!pop.classList.contains("hidden") && pop.dataset.kind === kind) { pop.classList.add("hidden"); return; }
+  fillWalletPop(kind);
+  pop.classList.remove("hidden");
+});
+document.addEventListener("click", (e) => {
+  const pop = $("#wallet-pop");
+  if (pop && !pop.classList.contains("hidden") && !e.target.closest("#wallet")) pop.classList.add("hidden");
+});
+
+/* ===== V3: Turbo Market ===== */
+const _qty = {}; // remembered quantity per item card
+function renderTurboMarket() {
+  $("#market-balance").textContent = myBalance().toLocaleString();
+  const host = $("#market-host");
+  if (State.shopItems.length === 0) {
+    host.innerHTML = `<div class="empty-note">The market is empty. (If this is the first run, the demo database may not be set up yet.)</div>`;
+    return;
+  }
+  const own = Object.fromEntries(myInventory().map(i => [i.item_key, i.qty]));
+  const bal = myBalance();
+  const card = (s) => {
+    const q = _qty[s.key] || 1;
+    const cost = s.price * q;
+    const can = s.active && bal >= cost;
+    return `
+      <div class="shop-card ${s.kind === "special" ? "special" : ""}" data-item="${s.key}">
+        <div class="sc-kind">${s.kind === "turbo" ? "TURBO" : "SPECIAL TURBO"}${s.active ? "" : " · OFF SALE"}</div>
+        <div class="sc-mult">${multText(s.multiplier)}</div>
+        <div class="sc-price">${s.price.toLocaleString()} pts</div>
+        <div class="sc-own">You own <b>${own[s.key] || 0}</b></div>
+        <div class="qty">
+          <button data-q="-1" aria-label="Less">−</button>
+          <input type="number" min="1" max="99" value="${q}" data-qin aria-label="Quantity" />
+          <button data-q="1" aria-label="More">+</button>
+        </div>
+        <button class="btn btn-primary" data-buy ${can ? "" : "disabled"}>${can ? `Buy · ${cost.toLocaleString()} pts` : (s.active ? "Not enough points" : "Off sale")}</button>
+        ${State.isAdmin ? `<div class="sc-admin" title="Admin: set price">
+            <input type="number" min="0" step="10" value="${s.price}" data-price aria-label="Price" />
+            <button data-save-price>Save price</button>
+          </div>` : ""}
+      </div>`;
+  };
+  const turbos = State.shopItems.filter(s => s.kind === "turbo" && (s.active || State.isAdmin));
+  const specials = State.shopItems.filter(s => s.kind === "special" && (s.active || State.isAdmin));
+  host.innerHTML = `
+    <div class="market-section">
+      <h4>⚡ TURBO</h4>
+      <div class="sub">Multiplies the points of <b>every</b> winning pick in your bet.</div>
+      <div class="shop-grid">${turbos.map(card).join("")}</div>
+    </div>
+    <div class="market-section">
+      <h4>★ SPECIAL TURBO</h4>
+      <div class="sub">Attach it to <b>one place</b> (1st, 2nd or 3rd pick) in your bet. It only pays if that pick wins a prize.</div>
+      <div class="shop-grid">${specials.map(card).join("")}</div>
+    </div>
+    <div class="how-box">
+      <b>How winnings are calculated</b> (for each winning pick, Turbo and Special Turbo are calculated separately and added):<br>
+      • No boost: prize points as normal.<br>
+      • Turbo only: points × Turbo. E.g. you win 1st Prize (600) + 3rd Prize (100) with Turbo 2x → (600 + 100) × 2 = <b>1,400</b>.<br>
+      • Special Turbo only: points × Special on that pick. E.g. Special 4x on your 2nd pick, which wins a 2nd Prize (300) → 300 × 4 = <b>1,200</b>.<br>
+      • Both on the same winning pick: (points × Turbo) + (points × Special). E.g. 1st Prize 600 with Turbo 2x + Special 3x → 1,200 + 1,800 = <b>3,000</b>.<br>
+      Boosts attached to your bet are used up when the round is played, win or lose. You can swap or remove them any time before that.
+    </div>`;
+
+  host.querySelectorAll(".shop-card").forEach(el => {
+    const key = el.dataset.item;
+    const input = el.querySelector("[data-qin]");
+    const setQ = (q) => { _qty[key] = Math.max(1, Math.min(99, q || 1)); renderTurboMarket(); };
+    el.querySelectorAll("[data-q]").forEach(b => b.onclick = () => setQ((_qty[key] || 1) + Number(b.dataset.q)));
+    input.onchange = () => setQ(parseInt(input.value, 10));
+    el.querySelector("[data-buy]").onclick = () => buyFlow(key);
+    const save = el.querySelector("[data-save-price]");
+    if (save) save.onclick = async () => {
+      const price = parseInt(el.querySelector("[data-price]").value, 10);
+      if (!(price >= 0)) { toast("Enter a price of 0 or more.", "error"); return; }
+      try { await Store.updateShopItem(key, { price }); State.shopItems = await Store.listShopItems(); renderTurboMarket(); toast(`${itemLabel(shopItem(key))} price set to ${price.toLocaleString()} pts.`, "success"); }
+      catch (e) { toast(friendlyError(e), "error"); }
+    };
+  });
+}
+
+async function buyFlow(key) {
+  const s = shopItem(key);
+  if (!s) return;
+  const q = _qty[key] || 1;
+  const cost = s.price * q;
+  const bal = myBalance();
+  const ok = await modal({
+    title: `Buy ${q} × ${itemLabel(s)}?`,
+    html: `<div class="form-info">Cost: <b>${cost.toLocaleString()} pts</b><br>Balance after: <b>${(bal - cost).toLocaleString()} pts</b></div>
+      <p>The purchase is recorded in your Point History.</p>`,
+    confirmText: "Buy",
+  });
+  if (!ok) return;
+  try {
+    await Store.buyItem(key, q);
+    [State.pointHistory, State.inventory] = await Promise.all([Store.listPointHistory(), Store.listInventory()]);
+    _qty[key] = 1;
+    render(); renderWallet(); renderBetUI();
+    toast(`Bought ${q} × ${itemLabel(s)}.`, "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+/* ===== V3: Lottery Bet (floating button + draggable, minimizable window) ===== */
+function myOpenBet() { return State.myBets.find(b => b.status === "open") || null; }
+function myLastSettledBet() { return State.myBets.find(b => b.status === "settled") || null; }
+
+function draftFromBet(b) {
+  return b
+    ? { pick1: b.pick1, pick2: b.pick2, pick3: b.pick3, turbo: b.turbo_key || "", special: b.special_key || "", specialPlace: b.special_place ? String(b.special_place) : "1", dirty: false }
+    : { pick1: "", pick2: "", pick3: "", turbo: "", special: "", specialPlace: "1", dirty: false };
+}
+
+/** Show/hide the floating button and window depending on page + login. */
+function renderBetUI() {
+  const fab = $("#bet-fab"), win = $("#bet-window");
+  if (!fab || !win) return;
+  const visible = State.isUser && currentView === "home";
+  fab.classList.toggle("hidden", !visible || State.betWindowOpen);
+  win.classList.toggle("hidden", !visible || !State.betWindowOpen);
+  $("#bet-fab-dot").classList.toggle("hidden", !myOpenBet());
+  if (visible && State.betWindowOpen) renderBetWindow();
+}
+
+function openBetWindow() {
+  State.betWindowOpen = true;
+  if (!State.betDraft) State.betDraft = draftFromBet(myOpenBet());
+  const win = $("#bet-window");
+  win.classList.remove("hidden");
+  if (!State.betPos) {
+    const w = Math.min(380, window.innerWidth * 0.94);
+    State.betPos = { left: Math.max(8, window.innerWidth - w - 22), top: Math.max(70, window.innerHeight - Math.min(window.innerHeight * 0.78, 680) - 22) };
+  }
+  placeBetWindow();
+  renderBetUI();
+}
+function minimizeBetWindow() {
+  State.betWindowOpen = false;
+  renderBetUI();
+}
+function placeBetWindow() {
+  const win = $("#bet-window");
+  const r = win.getBoundingClientRect();
+  const w = r.width || 380, h = r.height || 400;
+  const left = Math.min(Math.max(4, State.betPos.left), Math.max(4, window.innerWidth - w - 4));
+  const top = Math.min(Math.max(4, State.betPos.top), Math.max(4, window.innerHeight - Math.min(h, 120) - 4));
+  State.betPos = { left, top };
+  win.style.left = left + "px";
+  win.style.top = top + "px";
+}
+
+// Drag by the title bar (mouse + touch via pointer events)
+(function wireBetDrag() {
+  const head = $("#bet-win-head");
+  let start = null;
+  head.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("#bet-win-min")) return;
+    start = { x: e.clientX, y: e.clientY, left: State.betPos.left, top: State.betPos.top };
+    head.setPointerCapture(e.pointerId);
+    head.classList.add("dragging");
+  });
+  head.addEventListener("pointermove", (e) => {
+    if (!start) return;
+    State.betPos = { left: start.left + (e.clientX - start.x), top: start.top + (e.clientY - start.y) };
+    placeBetWindow();
+  });
+  const end = () => { start = null; head.classList.remove("dragging"); };
+  head.addEventListener("pointerup", end);
+  head.addEventListener("pointercancel", end);
+  window.addEventListener("resize", () => { if (State.betWindowOpen && State.betPos) placeBetWindow(); });
+})();
+$("#bet-fab").onclick = openBetWindow;
+$("#bet-win-min").onclick = minimizeBetWindow;
+
+function renderBetWindow() {
+  const body = $("#bet-win-body");
+  const d = State.betDraft || (State.betDraft = draftFromBet(myOpenBet()));
+  const open = myOpenBet();
+  const pics = [...State.pictures].sort((a, b) => a.name.localeCompare(b.name));
+  const inv = Object.fromEntries(myInventory().map(i => [i.item_key, i.qty]));
+  // Items you own, plus the one already attached to your bet (so it stays selectable)
+  const ownedOf = (kind, current) => State.shopItems.filter(s => s.kind === kind && ((inv[s.key] || 0) > 0 || s.key === current));
+  const turbos = ownedOf("turbo", d.turbo);
+  const specials = ownedOf("special", d.special);
+
+  const slot = (n) => {
+    const v = d["pick" + n];
+    const url = v ? picUrl(v) : "";
+    const special = d.special && String(d.specialPlace) === String(n);
+    return `<div class="bet-slot${special ? " special-on" : ""}">
+      <div class="bs-place">${n === 1 ? "1ST" : n === 2 ? "2ND" : "3RD"} PICK${special ? "<br><span style='color:#c2185b'>★ SPECIAL</span>" : ""}</div>
+      <div class="bs-thumb">${url ? `<img src="${escapeHtml(url)}" alt="">` : "?"}</div>
+      <select data-pick="${n}">
+        <option value="">— choose a picture —</option>
+        ${pics.map(p => `<option value="${p.id}" ${p.id === v ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}
+      </select>
+    </div>`;
+  };
+
+  const last = myLastSettledBet();
+  let lastHtml = "";
+  if (last) {
+    const roundDate = last.updated_at ? new Date(last.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+    const lines = (last.breakdown || []).map(x => {
+      const label = (PRIZE_LABELS_FORM.find(p => p.rank === Number(x.prizeRank)) || {}).label || `Prize ${x.prizeRank}`;
+      return `<li>Pick #${x.place} ${escapeHtml(picName(x.pictureId))} → ${escapeHtml(label.replace(/\s—.*$/, ""))}: <b>+${Number(x.points).toLocaleString()}</b>${Number(x.multiplier) !== 1 ? ` (×${Number(x.multiplier)})` : ""}</li>`;
+    }).join("");
+    lastHtml = `<div class="bet-last">Last round (${escapeHtml(roundDate)}): ${last.winnings > 0 ? `you won <b>${Number(last.winnings).toLocaleString()} pts</b>` : "no winning picks this time."}${lines ? `<ul>${lines}</ul>` : ""}</div>`;
+  }
+
+  body.innerHTML = `
+    <div class="bet-status ${open ? "saved" : "none"}">
+      ${open
+        ? `✅ Your bet is saved${d.dirty ? " — <b>you have unsaved changes</b>" : ""}. You can change it until the admin plays the next round.`
+        : `You haven't placed a bet for the next round yet. Pick 3 different pictures — if any of them is drawn, you win that prize's points.`}
+    </div>
+    ${slot(1)}${slot(2)}${slot(3)}
+    <div class="bet-boosts">
+      <div>
+        <label>⚡ Turbo (all winning picks)</label>
+        <select data-turbo>
+          <option value="">No Turbo</option>
+          ${turbos.map(s => `<option value="${s.key}" ${s.key === d.turbo ? "selected" : ""}>${escapeHtml(itemLabel(s))} — you own ${inv[s.key] || 0}</option>`).join("")}
+        </select>
+      </div>
+      <div>
+        <label>★ Special Turbo (one pick)</label>
+        <div class="row2">
+          <select data-special>
+            <option value="">No Special Turbo</option>
+            ${specials.map(s => `<option value="${s.key}" ${s.key === d.special ? "selected" : ""}>${escapeHtml(itemLabel(s))} — own ${inv[s.key] || 0}</option>`).join("")}
+          </select>
+          <select data-special-place ${d.special ? "" : "disabled"}>
+            <option value="1" ${d.specialPlace === "1" ? "selected" : ""}>on 1st pick</option>
+            <option value="2" ${d.specialPlace === "2" ? "selected" : ""}>on 2nd pick</option>
+            <option value="3" ${d.specialPlace === "3" ? "selected" : ""}>on 3rd pick</option>
+          </select>
+        </div>
+      </div>
+      ${turbos.length + specials.length === 0 ? `<div class="bet-hint" style="margin:0">You don't own any Turbos. <button class="link-btn" data-go-market style="background:none;border:0;color:var(--blue-deep);text-decoration:underline;cursor:pointer;padding:0;font:inherit">Visit Turbo Market</button></div>` : ""}
+    </div>
+    <div class="bet-hint">Points for each winning pick = prize points × Turbo, plus prize points × Special Turbo if that pick has it (e.g. 1st Prize 600 with Turbo 2x + Special 3x = 1,200 + 1,800 = 3,000). Boosts are used up when the round is played.</div>
+    <div class="bet-err" id="bet-err"></div>
+    <div class="bet-actions">
+      <button class="btn btn-primary" data-save-bet>${open ? "Update bet" : "Place bet"}</button>
+      ${open ? `<button class="btn btn-warn" data-clear-bet>Clear bet</button>` : ""}
+    </div>
+    ${lastHtml}`;
+
+  const mark = () => { d.dirty = true; };
+  body.querySelectorAll("[data-pick]").forEach(sel => sel.onchange = () => { d["pick" + sel.dataset.pick] = sel.value; mark(); renderBetWindow(); });
+  body.querySelector("[data-turbo]").onchange = (e) => { d.turbo = e.target.value; mark(); renderBetWindow(); };
+  body.querySelector("[data-special]").onchange = (e) => { d.special = e.target.value; mark(); renderBetWindow(); };
+  body.querySelector("[data-special-place]").onchange = (e) => { d.specialPlace = e.target.value; mark(); renderBetWindow(); };
+  const gm = body.querySelector("[data-go-market]");
+  if (gm) gm.onclick = () => { minimizeBetWindow(); setView("turbo-market"); };
+  body.querySelector("[data-save-bet]").onclick = saveBetFlow;
+  const clr = body.querySelector("[data-clear-bet]");
+  if (clr) clr.onclick = clearBetFlow;
+}
+
+async function saveBetFlow() {
+  const d = State.betDraft;
+  const err = $("#bet-err");
+  err.textContent = "";
+  if (!d.pick1 || !d.pick2 || !d.pick3) { err.textContent = "Pick a picture for all three places."; return; }
+  if (new Set([d.pick1, d.pick2, d.pick3]).size < 3) { err.textContent = "Your three picks must be different pictures."; return; }
+  try {
+    await Store.placeBet(d);
+    State.myBets = await Store.listMyBets(State.me.picture_id);
+    State.betDraft = draftFromBet(myOpenBet());
+    renderBetUI(); renderWallet();
+    toast("Your Lottery Bet is saved. Good luck!", "success");
+  } catch (e) { err.textContent = friendlyError(e); }
+}
+
+async function clearBetFlow() {
+  const ok = await modal({ title: "Clear your bet?", body: "Your picks are removed and any attached Turbos go back to your stock.", confirmText: "Clear", danger: true });
+  if (!ok) return;
+  try {
+    await Store.cancelBet();
+    State.myBets = await Store.listMyBets(State.me.picture_id);
+    State.betDraft = draftFromBet(null);
+    renderBetUI(); renderWallet();
+    toast("Bet cleared.", "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+/* ===== V3: Rewards ===== */
+const TIER_OPTIONS = ["gold", "silver", "bronze", "other"];
+function renderRewards() {
+  $("#rewards-balance").textContent = myBalance().toLocaleString();
+  const host = $("#rewards-host");
+  const bal = myBalance();
+  const active = State.rewardItems.filter(r => r.active);
+
+  const cards = active.length
+    ? `<div class="reward-grid">${active.map(r => `
+        <div class="reward-card">
+          <div class="coin ${TIER_OPTIONS.includes(r.tier) ? r.tier : "other"}">★</div>
+          <div class="rc-name">${escapeHtml(r.name)}</div>
+          <div class="rc-points">${r.points.toLocaleString()} pts</div>
+          <button class="btn btn-primary" data-claim="${r.id}" ${bal >= r.points ? "" : "disabled"}>${bal >= r.points ? "Claim" : `Need ${(r.points - bal).toLocaleString()} more`}</button>
+        </div>`).join("")}</div>`
+    : `<div class="empty-note">No rewards available right now.</div>`;
+
+  // Pending queue (admin)
+  let pendingHtml = "";
+  if (State.isAdmin) {
+    const pending = State.claims.filter(c => c.status === "pending");
+    pendingHtml = `<div class="sub-panel"><h4>🛎️ Pending requests (${pending.length})</h4>
+      ${pending.length ? pending.map(c => `
+        <div class="pending-row">
+          <div><b>${escapeHtml(c.player_name_snapshot)}</b> wants <b>${escapeHtml(c.reward_name)}</b> · ${c.points.toLocaleString()} pts
+            <div class="c-note" style="color:var(--muted);font-size:11px">${new Date(c.created_at).toLocaleString()}</div></div>
+          <div class="pr-actions">
+            <button class="btn btn-primary" data-approve="${c.id}">Approve</button>
+            <button class="btn btn-warn" data-reject="${c.id}">Reject</button>
+          </div>
+        </div>`).join("") : `<div class="empty-note">No requests waiting.</div>`}
+    </div>`;
+  }
+
+  // Claim history, year by year (mine for players, everyone's for admin)
+  const years = new Set([new Date().getFullYear()]);
+  State.claims.forEach(c => years.add(new Date(c.created_at).getFullYear()));
+  const yearList = [...years].sort((a, b) => b - a);
+  if (!yearList.includes(State.claimsYear)) State.claimsYear = yearList[0];
+  const yearClaims = State.claims.filter(c => new Date(c.created_at).getFullYear() === State.claimsYear);
+  const historyHtml = `<div class="sub-panel">
+    <h4>${State.isAdmin ? "All claims" : "My claims"}
+      <select id="claims-year">${yearList.map(y => `<option value="${y}" ${y === State.claimsYear ? "selected" : ""}>${y}</option>`).join("")}</select>
+    </h4>
+    ${yearClaims.length ? yearClaims.map(c => `
+      <div class="claim-row${State.isAdmin ? " admin" : ""}">
+        <div class="c-date">${new Date(c.created_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+        ${State.isAdmin ? `<div><b>${escapeHtml(c.player_name_snapshot)}</b></div>` : ""}
+        <div>${escapeHtml(c.reward_name)}${c.decided_note ? `<div class="c-note">${escapeHtml(c.decided_note)}</div>` : ""}</div>
+        <div class="c-pts">${c.points.toLocaleString()}</div>
+        <span class="status-chip ${c.status}">${c.status.toUpperCase()}</span>
+      </div>`).join("") : `<div class="empty-note">No claims in ${State.claimsYear}.</div>`}
+  </div>`;
+
+  // Catalog management (admin)
+  let catalogHtml = "";
+  if (State.isAdmin) {
+    const row = (r) => `
+      <div class="catalog-row" data-reward-row="${r ? r.id : "new"}">
+        <input type="text" value="${r ? escapeHtml(r.name) : ""}" placeholder="Reward name" data-f="name" maxlength="60" />
+        <input type="number" min="1" step="10" value="${r ? r.points : ""}" placeholder="Points" data-f="points" />
+        <select data-f="tier">${TIER_OPTIONS.map(t => `<option value="${t}" ${(r ? r.tier : "gold") === t ? "selected" : ""}>${t[0].toUpperCase() + t.slice(1)} style</option>`).join("")}</select>
+        <select data-f="active"><option value="true" ${!r || r.active ? "selected" : ""}>Shown</option><option value="false" ${r && !r.active ? "selected" : ""}>Hidden</option></select>
+        <div class="cr-actions">
+          <button class="cr-save" data-save-reward>${r ? "Save" : "Add"}</button>
+          ${r ? `<button class="cr-del" data-del-reward>Delete</button>` : ""}
+        </div>
+      </div>`;
+    catalogHtml = `<div class="sub-panel"><h4>⚙️ Manage rewards (admin)</h4>
+      <div class="catalog-row head"><span>Name</span><span>Points</span><span>Look</span><span>Status</span><span></span></div>
+      ${State.rewardItems.map(row).join("")}
+      ${row(null)}
+      <div class="sub" style="font-size:12px;color:var(--muted)">Changing a price only affects new requests. Deleting a reward keeps its past claims.</div>
+    </div>`;
+  }
+
+  host.innerHTML = cards + pendingHtml + historyHtml + catalogHtml;
+
+  host.querySelectorAll("[data-claim]").forEach(b => b.onclick = () => claimFlow(b.dataset.claim));
+  host.querySelectorAll("[data-approve]").forEach(b => b.onclick = () => decideFlow(b.dataset.approve, true));
+  host.querySelectorAll("[data-reject]").forEach(b => b.onclick = () => decideFlow(b.dataset.reject, false));
+  const ys = host.querySelector("#claims-year");
+  if (ys) ys.onchange = () => { State.claimsYear = Number(ys.value); renderRewards(); };
+  host.querySelectorAll("[data-reward-row]").forEach(rowEl => {
+    const id = rowEl.dataset.rewardRow === "new" ? null : rowEl.dataset.rewardRow;
+    const get = f => rowEl.querySelector(`[data-f="${f}"]`).value;
+    rowEl.querySelector("[data-save-reward]").onclick = async () => {
+      const item = { id, name: get("name").trim(), points: parseInt(get("points"), 10), tier: get("tier"), active: get("active") === "true" };
+      if (!item.name) { toast("Enter a reward name.", "error"); return; }
+      if (!(item.points > 0)) { toast("Points must be more than 0.", "error"); return; }
+      try { await Store.saveRewardItem(item); State.rewardItems = await Store.listRewardItems(); renderRewards(); toast(id ? "Reward updated." : "Reward added.", "success"); }
+      catch (e) { toast(friendlyError(e), "error"); }
+    };
+    const del = rowEl.querySelector("[data-del-reward]");
+    if (del) del.onclick = async () => {
+      const ok = await modal({ title: "Delete this reward?", body: `“${escapeHtml(get("name"))}” will no longer be claimable. Past claims are kept.`, confirmText: "Delete", danger: true });
+      if (!ok) return;
+      try { await Store.deleteRewardItem(id); State.rewardItems = await Store.listRewardItems(); renderRewards(); toast("Reward deleted.", "success"); }
+      catch (e) { toast(friendlyError(e), "error"); }
+    };
+  });
+}
+
+async function claimFlow(rewardId) {
+  const r = State.rewardItems.find(x => x.id === rewardId);
+  if (!r) return;
+  const bal = myBalance();
+  const ok = await modal({
+    title: `Claim ${r.name}?`,
+    html: `<div class="form-info">Cost: <b>${r.points.toLocaleString()} pts</b><br>Balance after: <b>${(bal - r.points).toLocaleString()} pts</b></div>
+      <p>Your points are held now and the admin reviews your request. If it's rejected, the points are refunded.</p>`,
+    confirmText: "Request",
+  });
+  if (!ok) return;
+  try {
+    await Store.requestReward(rewardId);
+    [State.pointHistory, State.claims] = await Promise.all([Store.listPointHistory(), Store.listClaims()]);
+    render(); renderWallet();
+    toast(`${r.name} requested — waiting for admin approval.`, "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+async function decideFlow(claimId, approve) {
+  const c = State.claims.find(x => x.id === claimId);
+  if (!c) return;
+  let note = "";
+  const ok = await modal({
+    title: approve ? "Approve request?" : "Reject request?",
+    html: `<div class="form-info"><b>${escapeHtml(c.player_name_snapshot)}</b> · ${escapeHtml(c.reward_name)} · ${c.points.toLocaleString()} pts</div>
+      ${approve ? "<p>Hand over the reward after approving.</p>" : "<p>The points are refunded to the player.</p>"}
+      <div class="form-row"><label for="d-note">Note (optional)</label><input type="text" id="d-note" maxlength="120" placeholder="${approve ? "e.g. handed over on Friday" : "e.g. out of stock"}" /></div>`,
+    confirmText: approve ? "Approve" : "Reject",
+    danger: !approve,
+    onConfirm: (m) => { note = m.querySelector("#d-note").value.trim(); },
+  });
+  if (!ok) return;
+  try {
+    await Store.decideClaim(claimId, approve, note);
+    [State.pointHistory, State.claims] = await Promise.all([Store.listPointHistory(), Store.listClaims()]);
+    render(); renderWallet();
+    toast(approve ? "Request approved." : "Request rejected and points refunded.", "success");
+  } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+/* ===== V3 BackOffice: open bets overview ===== */
+function renderOpenBetsPanel() {
+  const host = $("#open-bets-host");
+  if (!host) return;
+  if (State.openBets.length === 0) {
+    host.innerHTML = `<div class="empty-note">No open bets for the next round yet.</div>`;
+    return;
+  }
+  host.innerHTML = `<div class="sub" style="margin-bottom:6px">${State.openBets.length} player(s) have placed a bet.</div>` +
+    State.openBets.map(b => {
+      const boosts = [];
+      if (b.turbo_key) boosts.push(itemLabel(shopItem(b.turbo_key)) || b.turbo_key);
+      if (b.special_key) boosts.push(`${itemLabel(shopItem(b.special_key)) || b.special_key} on #${b.special_place}`);
+      return `<div class="bet-row">
+        <div class="b-who">${escapeHtml(b.player_name_snapshot)}</div>
+        <div>1. ${escapeHtml(picName(b.pick1))} · 2. ${escapeHtml(picName(b.pick2))} · 3. ${escapeHtml(picName(b.pick3))}</div>
+        <div class="b-boost">${boosts.length ? escapeHtml(boosts.join(" + ")) : "—"}</div>
+        <div class="b-time">${new Date(b.updated_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+      </div>`;
+    }).join("");
 }
 
 function renderHistory() {
@@ -1997,16 +3230,24 @@ function buildPlayerDropdown(player) {
 function renderHistoryRow(e) {
   const dt = new Date(e.created_at);
   const dateStr = dt.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  const typeCls = e.type === "lotto_win" ? "lotto" : "manual";
-  const typeText = e.type === "lotto_win" ? "Lotto Win" : "Manual";
+  const TYPE_UI = {
+    lotto_win:      ["lotto",  "Lotto Win"],
+    manual_edit:    ["manual", "Manual"],
+    bet_win:        ["bet",    "Bet Win"],
+    turbo_purchase: ["buy",    "Turbo Buy"],
+    reward_claim:   ["claim",  "Reward"],
+    reward_refund:  ["refund", "Refund"],
+  };
+  const [typeCls, typeText] = TYPE_UI[e.type] || ["manual", e.type];
   let detail = "";
-  if (e.type === "lotto_win") {
+  if (e.type === "lotto_win" || e.type === "bet_win") {
     const roundDate = e.round_created_at ? new Date(e.round_created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "(round unknown)";
-    const prizeInfo = PRIZE_LABELS_FORM.find(x => x.rank === Number(e.prize_rank));
     const prizeName = prizeLabelWithWinner(e.prize_rank, entryWinnerName(e));
-    detail = `<div>${escapeHtml(prizeName)}</div><div class="note">Round: ${escapeHtml(roundDate)}</div>`;
-  } else {
+    detail = `<div>${escapeHtml(prizeName)}</div><div class="note">Round: ${escapeHtml(roundDate)}${e.type === "bet_win" && e.note ? " · " + escapeHtml(e.note) : ""}</div>`;
+  } else if (e.type === "manual_edit") {
     detail = `<div>Admin adjustment</div>${e.note ? `<div class="note">${escapeHtml(e.note)}</div>` : ""}`;
+  } else {
+    detail = `<div>${escapeHtml(e.note || typeText)}</div>`;
   }
   const revoked = !!e.revoked_at;
   if (revoked) {
@@ -2016,7 +3257,9 @@ function renderHistoryRow(e) {
   const deltaCls = Number(e.delta) >= 0 ? "pos" : "neg";
   const deltaText = (Number(e.delta) >= 0 ? "+" : "") + Number(e.delta).toLocaleString();
   let actionHtml = "";
-  if (State.isAdmin) {
+  // Purchases and reward requests are undone by rejecting/refunding, not by Revoke.
+  const revocable = ["manual_edit", "lotto_win", "bet_win"].includes(e.type);
+  if (State.isAdmin && revocable) {
     actionHtml = revoked
       ? `<button class="h-action restore" data-restore="${e.id}" title="Count this entry again">↺ Restore</button>`
       : `<button class="h-action revoke" data-revoke="${e.id}" title="Revoke this entry">✕ Revoke</button>`;
@@ -2154,7 +3397,16 @@ async function handlePlay() {
     for (const p of localPics) {
       await Store.updatePicture(p.id, { probability: p.probability, wins: p.wins });
     }
-    await Store.createRound(winnerRecord, PRIZE_TABLE.reduce((s, v) => s + v, 0));
+    const newRound = await Store.createRound(winnerRecord, PRIZE_TABLE.reduce((s, v) => s + v, 0));
+    // V3: settle every open Lottery Bet against this round (server-side, atomic).
+    let settleMsg = "";
+    try {
+      const r = await Store.settleBets(newRound.id);
+      if (r && r.bets) settleMsg = ` ${r.bets} bet(s) settled · ${r.winners} winner(s) · ${Number(r.points).toLocaleString()} pts paid.`;
+    } catch (e) {
+      console.error("settle_bets failed", e);
+      toast("Round saved, but Lottery Bets could not be settled: " + friendlyError(e), "error");
+    }
     // Mark podium as active so the Latest Prizes section shows the new round.
     await Store.upsertSetting("podium_active", "true");
     State.settings.podium_active = "true";
@@ -2166,7 +3418,8 @@ async function handlePlay() {
     }
     hideDrawingOverlay();
     launchConfetti();
-    toast("Round complete! Probabilities updated.", "success");
+    toast("Round complete! Probabilities updated." + settleMsg, "success");
+    scheduleUserReload();
   } catch (e) {
     console.error(e);
     hideDrawingOverlay();
@@ -2526,7 +3779,8 @@ async function openEditPoints(player) {
 
 /* ---------- Wiring ---------- */
 $$("#tabs .tab").forEach(t => t.onclick = () => setView(t.dataset.view));
-$("#btn-auth").onclick = () => { if (State.isAdmin) logout(); else openLoginModal(); };
+$("#btn-auth").onclick = () => { if (State.session) logout(); else openLoginModal(); };
+$("#btn-add-member").onclick = addMemberFlow;
 // Play / Reset live inside the lotto-sheet now and are wired in renderHome().
 $("#btn-clear-history").onclick = handleClearHistory;
 $("#btn-save-settings").onclick = handleSaveSettings;
@@ -2555,22 +3809,17 @@ async function boot() {
 
   // Sanity-check config placeholders
   if (!sb || SUPABASE_URL.startsWith("REPLACE_") || SUPABASE_ANON_KEY.startsWith("REPLACE_")) {
-    setStatus("Set SUPABASE_URL and SUPABASE_ANON_KEY in index.html — see SETUP.md", "error");
+    setStatus("Set SUPABASE_URL and SUPABASE_ANON_KEY in index.html", "error");
     return;
   }
 
-  // Restore session if any
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    State.isAdmin = !!session;
-  } catch (e) { console.warn("session check failed", e); }
+  // Restore session (if any) and listen for login/logout in other tabs.
   updateAuthUI();
-
-  // Listen for auth changes (e.g., token refresh)
-  sb.auth.onAuthStateChange((event, session) => {
-    State.isAdmin = !!session;
-    updateAuthUI();
-    render();
+  sb.auth.onAuthStateChange((event) => {
+    // Don't call Supabase directly inside this callback (can deadlock) — defer.
+    if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+      setTimeout(() => refreshAuthState(), 0);
+    }
   });
 
   setStatus("Connecting to Supabase…");
@@ -2586,7 +3835,9 @@ async function boot() {
     }
     State.selectedYear = new Date().getFullYear();
     State.selectedMonth = new Date().getMonth();
+    State.claimsYear = new Date().getFullYear();
     State.loading = false;
+    await refreshAuthState();
     setStatus("Live", "success");
     setTimeout(hideStatus, 2200);
     await subscribeAll();
