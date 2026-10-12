@@ -946,6 +946,10 @@
   .status-chip.pending  { background: #fff1c2; color: #8a6200; border: 1px solid #d9a800; }
   .status-chip.approved { background: #d8f5e5; color: var(--green-deep); border: 1px solid var(--green); }
   .status-chip.rejected { background: #fde0e0; color: var(--red-deep); border: 1px solid var(--red); }
+  .status-chip.cancelled { background: #eeeeee; color: #666; border: 1px solid #bbb; }
+  .claim-row .c-status { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+  .claim-row .c-undo { border: 2px solid var(--navy); background: white; color: var(--navy); border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 800; cursor: pointer; }
+  .claim-row .c-undo:hover { background: var(--navy); color: white; }
   .pending-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px; border: 2px solid #ffd76a; background: #fffbe9; border-radius: 10px; margin-bottom: 8px; }
   .pending-row .pr-actions { display: flex; gap: 8px; }
   .pending-row .btn { padding: 7px 14px; font-size: 11px; }
@@ -1807,6 +1811,11 @@ Object.assign(Store, {
     if (error) throw error;
     return data;
   },
+  /** Player: undo my own claim while it's still pending (points come back). */
+  async cancelClaim(id) {
+    const { error } = await sb.rpc("cancel_claim", { p_claim_id: id });
+    if (error) throw error;
+  },
   async decideClaim(id, approve, note) {
     const { error } = await sb.rpc("decide_claim", { p_claim_id: id, p_approve: approve, p_note: note || null });
     if (error) throw error;
@@ -1830,7 +1839,7 @@ function friendlyError(err) {
     NO_SPECIAL_IN_STOCK: "You don't have enough of that Special Turbo (each pick needs its own). Buy more in Turbo Market.",
     SPECIAL_NEEDS_PLACE: "Choose which place (1st, 2nd or 3rd) gets the Special Turbo.",
     NOT_ADMIN: "Only the admin can do this.",
-    ALREADY_DECIDED: "This request was already approved or rejected.",
+    ALREADY_DECIDED: "This request is no longer pending (it was already approved, rejected or cancelled).",
     CANNOT_RESET_YOURSELF: "You can't reset your own account here.",
     CANNOT_REMOVE_YOURSELF: "You can't remove your own account (or your own picture).",
     BAD_QTY: "Quantity must be between 1 and 99.",
@@ -3230,7 +3239,8 @@ function renderRewards() {
         ${State.isAdmin ? `<div><b>${escapeHtml(c.player_name_snapshot)}</b></div>` : ""}
         <div>${escapeHtml(c.reward_name)}${c.decided_note ? `<div class="c-note">${escapeHtml(c.decided_note)}</div>` : ""}</div>
         <div class="c-pts">${c.points.toLocaleString()}</div>
-        <span class="status-chip ${c.status}">${c.status.toUpperCase()}</span>
+        <div class="c-status"><span class="status-chip ${c.status}">${c.status.toUpperCase()}</span>
+          ${c.status === "pending" && State.me && c.player_id === State.me.picture_id ? `<button class="c-undo" data-undo-claim="${c.id}" title="Cancel this request and get the points back">Undo</button>` : ""}</div>
       </div>`).join("") : `<div class="empty-note">No claims in ${State.claimsYear}.</div>`}
   </div>`;
 
@@ -3259,6 +3269,7 @@ function renderRewards() {
   host.innerHTML = cards + pendingHtml + historyHtml + catalogHtml;
 
   host.querySelectorAll("[data-claim]").forEach(b => b.onclick = () => claimFlow(b.dataset.claim));
+  host.querySelectorAll("[data-undo-claim]").forEach(b => b.onclick = () => undoClaimFlow(b.dataset.undoClaim));
   host.querySelectorAll("[data-approve]").forEach(b => b.onclick = () => decideFlow(b.dataset.approve, true));
   host.querySelectorAll("[data-reject]").forEach(b => b.onclick = () => decideFlow(b.dataset.reject, false));
   const ys = host.querySelector("#claims-year");
@@ -3300,6 +3311,27 @@ async function claimFlow(rewardId) {
     render(); renderWallet();
     toast(`${r.name} requested — waiting for admin approval.`, "success");
   } catch (e) { toast(friendlyError(e), "error"); }
+}
+
+async function undoClaimFlow(claimId) {
+  const c = State.claims.find(x => x.id === claimId);
+  if (!c || c.status !== "pending") return;
+  const ok = await modal({
+    title: `Undo your ${escapeHtml(c.reward_name)} request?`,
+    html: `<div class="form-info">The request is cancelled and <b>${c.points.toLocaleString()} pts</b> go back to your balance.</div>
+      <p>You can claim again later if you change your mind.</p>`,
+    confirmText: "Undo request", cancelText: "Keep it",
+  });
+  if (!ok) return;
+  try {
+    await Store.cancelClaim(claimId);
+    [State.pointHistory, State.claims] = await Promise.all([Store.listPointHistory(), Store.listClaims()]);
+    render(); renderWallet();
+    toast(`${c.reward_name} request cancelled — ${c.points.toLocaleString()} pts refunded.`, "success");
+  } catch (e) {
+    toast(friendlyError(e), "error");
+    try { State.claims = await Store.listClaims(); render(); } catch (_) {}
+  }
 }
 
 async function decideFlow(claimId, approve) {
