@@ -979,6 +979,38 @@
   .mini-btn.danger:hover { background: var(--red); color: white; }
   .bet-row { display: grid; grid-template-columns: 1fr 2fr 1.2fr 110px; gap: 10px; padding: 8px 4px; border-bottom: 1px solid #f0e6c8; font-size: 13px; align-items: center; }
   .bet-row:last-child { border-bottom: 0; }
+  /* Lottery Bet report (BackOffice) */
+  .rep-round { border: 2px solid var(--gold); border-radius: 12px; background: white; margin-bottom: 10px; overflow: hidden; }
+  .rep-round > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1.3fr repeat(4, minmax(80px, 1fr)) 18px; gap: 10px; align-items: center; padding: 10px 14px; background: #fff8dc; }
+  .rep-round > summary::-webkit-details-marker { display: none; }
+  .rep-round > summary .rr-title { font-family: var(--font-display); color: var(--red); letter-spacing: 1px; font-size: 14px; }
+  .rep-round > summary .rr-title small { display: block; font-family: var(--font-body); color: var(--muted); font-size: 11px; letter-spacing: 0; }
+  .rep-stat { text-align: center; line-height: 1.15; }
+  .rep-stat b { display: block; font-family: var(--font-display); font-size: 16px; color: var(--navy); }
+  .rep-stat span { font-size: 10px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; }
+  .rep-stat.win b { color: var(--green-deep, #13804a); }
+  .rep-stat.lose b { color: #a31419; }
+  .rep-round > summary .rr-caret { transition: transform .15s; color: var(--muted); }
+  .rep-round[open] > summary .rr-caret { transform: rotate(90deg); }
+  .rep-round.empty > summary { cursor: default; background: #fafafa; }
+  .rep-body { padding: 6px 10px 10px; overflow-x: auto; }
+  .rep-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 640px; }
+  .rep-table th { text-align: left; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); padding: 6px; border-bottom: 2px solid #f0e6c8; }
+  .rep-table td { padding: 6px; border-bottom: 1px solid #f3ebd2; vertical-align: top; }
+  .rep-table tr:last-child td { border-bottom: 0; }
+  .rep-table .rp-who { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .rep-pick { display: flex; flex-direction: column; gap: 2px; }
+  .rep-pick .rp-name { white-space: nowrap; }
+  .rep-pick .rp-hit { display: inline-block; font-size: 10px; font-weight: 700; color: #13804a; background: #d8f5e5; border-radius: 6px; padding: 0 5px; width: fit-content; }
+  .rep-pick .rp-miss { font-size: 10px; color: var(--muted); }
+  .rep-pick .rp-sp { display: inline-block; font-size: 10px; font-weight: 700; color: #ad1457; background: #ffe3ee; border-radius: 6px; padding: 0 5px; width: fit-content; }
+  .rep-res { font-family: var(--font-display); white-space: nowrap; text-align: right; }
+  .rep-res.win { color: #13804a; }
+  .rep-res.lose { color: var(--muted); }
+  @media (max-width: 720px) {
+    .rep-round > summary { grid-template-columns: 1fr 1fr 1fr 18px; }
+    .rep-round > summary .rep-stat.hide-sm { display: none; }
+  }
   .bet-row .b-who { font-weight: 700; color: var(--navy); }
   .bet-row .b-boost { font-size: 12px; color: #6a4192; }
   .bet-row .b-time { font-size: 11px; color: var(--muted); text-align: right; }
@@ -1180,6 +1212,11 @@
       <div id="open-bets-host"></div>
     </div>
     <div class="panel">
+      <h3>Lottery Bet Report</h3>
+      <div class="sub">Win / lose summary of the Lottery Bets for the last 10 played rounds, newest first. Click a round to see every player's bet.</div>
+      <div id="bet-report-host"></div>
+    </div>
+    <div class="panel">
       <h3>Home Page Messages</h3>
       <div class="sub">These five editable boxes appear on the public Home Page. They can also be edited inline by clicking them while logged in.</div>
       <div class="settings-grid" id="settings-grid"></div>
@@ -1339,6 +1376,7 @@ const State = {
   inventory: [],          // my rows (admin receives everyone's; filtered by player_id)
   myBets: [],             // my recent bets (open + settled)
   openBets: [],           // admin only
+  settledBets: [],        // admin only — for the Lottery Bet report
   rewardItems: [],
   claims: [],             // mine (user) or everyone's (admin)
   claimsYear: null,
@@ -1685,6 +1723,11 @@ Object.assign(Store, {
     if (error) throw error;
     return data || [];
   },
+  async listSettledBets() {
+    const { data, error } = await sb.from("bets").select("*").eq("status", "settled").order("updated_at", { ascending: false }).limit(1000);
+    if (error) throw error;
+    return data || [];
+  },
   async listOpenBets() {
     const { data, error } = await sb.from("bets").select("*").eq("status", "open").order("updated_at", { ascending: false });
     if (error) throw error;
@@ -1792,8 +1835,9 @@ async function loadUserData() {
   if (State.isAdmin) {
     tasks.push(Store.listMembers().then(d => State.members = d).catch(e => console.warn("members", e)));
     tasks.push(Store.listOpenBets().then(d => State.openBets = d).catch(e => console.warn("open bets", e)));
+    tasks.push(Store.listSettledBets().then(d => State.settledBets = d).catch(e => console.warn("settled bets", e)));
   } else {
-    State.members = []; State.openBets = [];
+    State.members = []; State.openBets = []; State.settledBets = [];
   }
   await Promise.all(tasks);
 }
@@ -2467,6 +2511,7 @@ function renderBackOffice() {
   }
   renderMembersPanel();
   renderOpenBetsPanel();
+  renderBetReportPanel();
 }
 
 /* ===== V3 BackOffice: members (email ↔ picture, 1:1) ===== */
@@ -3257,6 +3302,76 @@ function renderOpenBetsPanel() {
         <div class="b-time">${fmtDMYTime(b.updated_at)}</div>
       </div>`;
     }).join("");
+}
+
+/* ===== V3.3 BackOffice: Lottery Bet report (last 10 played rounds) ===== */
+const REPORT_PRIZE_SHORT = ["1st Prize", "2nd Prize · Set 1", "2nd Prize · Set 2", "3rd Prize · Set 1", "3rd Prize · Set 2", "3rd Prize · Set 3"];
+const _reportOpen = new Set(); // which rounds are expanded (kept across re-renders)
+function renderBetReportPanel() {
+  const host = $("#bet-report-host");
+  if (!host) return;
+  const rounds = State.rounds.slice(0, HISTORY_LIMIT);
+  if (rounds.length === 0) { host.innerHTML = `<div class="empty-note">No rounds played yet.</div>`; return; }
+  const multLabel = (m) => m == null ? "" : multText(m);
+  // Multiplier used at play time (saved since V3.3); older bets fall back to the item's current multiplier
+  const used = (b, slot, key) => {
+    if (!key) return null;
+    if (b.boost_mults && b.boost_mults[slot] != null) return Number(b.boost_mults[slot]);
+    const it = shopItem(key); return it ? Number(it.multiplier) : null;
+  };
+  host.innerHTML = rounds.map((r, i) => {
+    const no = rounds.length - i;
+    const bets = State.settledBets.filter(b => b.round_id === r.id)
+      .sort((a, b) => (b.winnings || 0) - (a.winnings || 0) || a.player_name_snapshot.localeCompare(b.player_name_snapshot));
+    const winners = bets.filter(b => (b.winnings || 0) > 0);
+    const paid = bets.reduce((s, b) => s + (b.winnings || 0), 0);
+    const turboUsed = bets.filter(b => b.turbo_key).length;
+    const specialUsed = bets.reduce((s, b) => s + [1, 2, 3].filter(n => betSpecial(b, n)).length, 0);
+    const title = `<div class="rr-title">Round ${no}<small>${fmtDMYTime(r.timestamp)}</small></div>`;
+    if (bets.length === 0) {
+      return `<details class="rep-round empty"><summary onclick="return false">${title}
+        <div class="rep-stat" style="grid-column: span 4; text-align:left"><span>No Lottery Bets this round</span></div><span></span></summary></details>`;
+    }
+    const rankOf = (pid) => (r.winners || []).findIndex(w => w.pictureId === pid) + 1; // 0 = not drawn
+    const rows = bets.map(b => {
+      const tMult = used(b, "turbo", b.turbo_key);
+      const pickCell = (n) => {
+        const pid = b["pick" + n];
+        const rank = rankOf(pid);
+        const sKey = betSpecial(b, n);
+        const sMult = used(b, "s" + n, sKey);
+        const part = (b.breakdown || []).find(x => Number(x.place) === n);
+        return `<td><div class="rep-pick">
+          <span class="rp-name">${escapeHtml(picName(pid))}</span>
+          ${rank ? `<span class="rp-hit">✓ ${REPORT_PRIZE_SHORT[rank - 1]}${part ? ` · +${Number(part.points).toLocaleString()}` : ""}</span>` : `<span class="rp-miss">not drawn</span>`}
+          ${sKey ? `<span class="rp-sp">★ Special ${escapeHtml(multLabel(sMult))}</span>` : ""}
+        </div></td>`;
+      };
+      const win = (b.winnings || 0) > 0;
+      return `<tr>
+        <td class="rp-who">${escapeHtml(b.player_name_snapshot)}</td>
+        ${pickCell(1)}${pickCell(2)}${pickCell(3)}
+        <td>${b.turbo_key ? `⚡ Turbo ${escapeHtml(multLabel(tMult))}` : "—"}</td>
+        <td class="rep-res ${win ? "win" : "lose"}">${win ? `WIN +${Number(b.winnings).toLocaleString()}` : "LOSE · 0"}</td>
+      </tr>`;
+    }).join("");
+    return `<details class="rep-round" data-round="${r.id}" ${_reportOpen.has(r.id) ? "open" : ""}>
+      <summary>${title}
+        <div class="rep-stat"><b>${bets.length}</b><span>Bets</span></div>
+        <div class="rep-stat win"><b>${winners.length}</b><span>Win</span></div>
+        <div class="rep-stat lose hide-sm"><b>${bets.length - winners.length}</b><span>Lose</span></div>
+        <div class="rep-stat hide-sm"><b>${paid.toLocaleString()}</b><span>Pts paid · ⚡${turboUsed} ★${specialUsed}</span></div>
+        <span class="rr-caret">▶</span>
+      </summary>
+      <div class="rep-body"><table class="rep-table">
+        <thead><tr><th>Player</th><th>1st pick</th><th>2nd pick</th><th>3rd pick</th><th>Turbo</th><th style="text-align:right">Result</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`;
+  }).join("");
+  host.querySelectorAll(".rep-round[data-round]").forEach(d => d.addEventListener("toggle", () => {
+    if (d.open) _reportOpen.add(d.dataset.round); else _reportOpen.delete(d.dataset.round);
+  }));
 }
 
 function renderHistory() {
