@@ -60,6 +60,15 @@
   .nav-cluster .btn-auth { margin-left: auto; } /* Log-in / Log-out always sits on the right edge */
   .tabs { display: flex; gap: 6px; background: var(--navy); padding: 6px; border-radius: 999px; box-shadow: var(--shadow); border: 2px solid var(--gold); }
   .tab { border: 0; background: transparent; padding: 10px 22px; border-radius: 999px; cursor: pointer; font-weight: 700; color: #e9d99e; letter-spacing: 0.5px; font-size: 13px; transition: all 0.15s; text-transform: uppercase; font-family: var(--font-display); }
+  .tab { position: relative; }
+  .tab-dot {
+    position: absolute; top: -4px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box;
+    border-radius: 999px; background: #e53935; color: #fff; border: 2px solid #fff;
+    font-family: var(--font-body); font-size: 10px; font-weight: 800; line-height: 14px; text-align: center; letter-spacing: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,.35); pointer-events: none;
+  }
+  .tab-dot.pop { animation: dotPop .35s ease-out; }
+  @keyframes dotPop { 0% { transform: scale(.4); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
   .tab.active { background: var(--gold); color: var(--navy-deep); box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); }
   .tab:hover:not(.active) { color: var(--gold); }
   .btn-auth { background: linear-gradient(180deg, var(--blue), var(--blue-deep)); color: white; border: 0; padding: 12px 22px; border-radius: 12px; cursor: pointer; font-weight: 800; font-family: var(--font-display); letter-spacing: 1px; font-size: 13px; box-shadow: var(--shadow); text-transform: uppercase; transition: transform 0.1s; }
@@ -2266,6 +2275,21 @@ function render() {
   else if (currentView === "player-ranking") renderPlayerRanking();
   else if (currentView === "turbo-market") renderTurboMarket();
   else if (currentView === "rewards") renderRewards();
+  renderTabBadges();
+}
+
+/** Admin: red dot with the number of pending reward requests on the REWARDS tab (hidden when 0). */
+function renderTabBadges() {
+  const tab = document.querySelector('.tab[data-view="rewards"]');
+  if (!tab) return;
+  const n = State.isAdmin ? State.claims.filter(c => c.status === "pending").length : 0;
+  let dot = tab.querySelector(".tab-dot");
+  if (!n) { if (dot) dot.remove(); tab.removeAttribute("aria-label"); return; }
+  if (!dot) { dot = document.createElement("span"); dot.className = "tab-dot"; tab.appendChild(dot); }
+  const txt = n > 99 ? "99+" : String(n);
+  if (dot.textContent !== txt) { dot.textContent = txt; dot.classList.remove("pop"); void dot.offsetWidth; dot.classList.add("pop"); }
+  tab.setAttribute("aria-label", `Rewards — ${n} pending request${n === 1 ? "" : "s"}`);
+  dot.title = `${n} reward request${n === 1 ? "" : "s"} waiting for approval`;
 }
 
 function renderHome() {
