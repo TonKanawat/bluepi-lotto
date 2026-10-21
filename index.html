@@ -1083,6 +1083,23 @@
   .bet-row .b-who { font-weight: 700; color: var(--navy); }
   .bet-row .b-boost { font-size: 12px; color: #6a4192; }
   .bet-row .b-time { font-size: 11px; color: var(--muted); text-align: right; }
+  /* Open Lottery Bets — tidy boxes for picks and boosts */
+  .ob-list .bet-row { grid-template-columns: 110px minmax(0, 1fr) 190px 96px; gap: 12px; padding: 9px 4px; }
+  .ob-head { display: grid; grid-template-columns: 110px minmax(0, 1fr) 190px 96px; gap: 12px; padding: 0 4px 6px; border-bottom: 2px solid #f0e6c8;
+    font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+  .ob-head span:last-child { text-align: right; }
+  .ob-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .ob-pick { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 4px 8px 4px 4px; border: 1.5px solid #f0d27a; background: #fffaf0; border-radius: 10px; }
+  .ob-pick .ob-no { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+  .ob-pick img, .ob-pick .ob-noimg { flex: none; width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: var(--line); border: 1.5px solid #fff; box-shadow: 0 0 0 1px #f0d27a; }
+  .ob-pick .ob-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ob-pick .ob-sp { flex: none; font-size: 10px; font-weight: 800; color: #ad1457; background: #ffe3ee; border-radius: 6px; padding: 1px 5px; }
+  .ob-pick.special { border-color: #e58aae; background: #fff4f8; }
+  .ob-boosts { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ob-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; border: 1.5px solid; white-space: nowrap; }
+  .ob-chip.turbo   { color: #7a4f00; background: #fff3c4; border-color: #e0b100; }
+  .ob-chip.special { color: #ad1457; background: #ffe3ee; border-color: #e58aae; }
+  .ob-chip.none    { color: var(--muted); background: #f6f6f6; border-color: #e3e3e3; font-weight: 500; }
 
   /* Lottery Bet floating button + window */
   .bet-fab {
@@ -1176,6 +1193,10 @@
     .member-row .m-email, .member-row .m-status { grid-column: 2 / -1; }
     .member-row .m-actions { grid-column: 1 / -1; }
     .bet-row { grid-template-columns: 1fr 1fr; }
+    .ob-head { display: none; }
+    .ob-list .bet-row { grid-template-columns: 1fr auto; }
+    .ob-list .bet-row .ob-picks, .ob-list .bet-row .ob-boosts { grid-column: 1 / -1; }
+    .ob-picks { grid-template-columns: 1fr; }
     .claim-row, .claim-row.admin { grid-template-columns: 1fr auto; }
     .catalog-row { grid-template-columns: 1fr 1fr; }
     .bet-fab { right: 14px; bottom: 14px; padding: 12px 16px; font-size: 12px; }
@@ -3594,18 +3615,30 @@ function renderOpenBetsPanel() {
     host.innerHTML = `<div class="empty-note">No open bets for the next round yet.</div>`;
     return;
   }
-  host.innerHTML = `<div class="sub" style="margin-bottom:6px">${State.openBets.length} player(s) have placed a bet.</div>` +
+  const mult = (key) => { const it = shopItem(key); return it ? multText(it.multiplier) : key; };
+  host.innerHTML = `<div class="sub" style="margin-bottom:8px">${State.openBets.length} player(s) have placed a bet.</div>
+    <div class="ob-list">
+      <div class="ob-head"><span>Player</span><span>Picks (1st · 2nd · 3rd)</span><span>Boosts</span><span>Updated</span></div>` +
     State.openBets.map(b => {
-      const boosts = [];
-      if (b.turbo_key) boosts.push(itemLabel(shopItem(b.turbo_key)) || b.turbo_key);
-      [1, 2, 3].forEach(n => { const k = betSpecial(b, n); if (k) boosts.push(`${itemLabel(shopItem(k)) || k} on #${n}`); });
+      const pick = (n) => {
+        const id = b["pick" + n], url = picUrl(id), sKey = betSpecial(b, n);
+        return `<div class="ob-pick${sKey ? " special" : ""}" title="${n === 1 ? "1st" : n === 2 ? "2nd" : "3rd"} pick: ${escapeHtml(picName(id))}${sKey ? " · Special Turbo " + escapeHtml(mult(sKey)) : ""}">
+          <span class="ob-no">${n}</span>
+          ${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy">` : `<span class="ob-noimg"></span>`}
+          <span class="ob-name">${escapeHtml(picName(id))}</span>
+          ${sKey ? `<span class="ob-sp">★${escapeHtml(mult(sKey))}</span>` : ""}
+        </div>`;
+      };
+      const chips = [];
+      if (b.turbo_key) chips.push(`<span class="ob-chip turbo">⚡ Turbo ${escapeHtml(mult(b.turbo_key))}</span>`);
+      [1, 2, 3].forEach(n => { const k = betSpecial(b, n); if (k) chips.push(`<span class="ob-chip special">★ Special ${escapeHtml(mult(k))} · #${n}</span>`); });
       return `<div class="bet-row">
         <div class="b-who">${escapeHtml(b.player_name_snapshot)}</div>
-        <div>1. ${escapeHtml(picName(b.pick1))} · 2. ${escapeHtml(picName(b.pick2))} · 3. ${escapeHtml(picName(b.pick3))}</div>
-        <div class="b-boost">${boosts.length ? escapeHtml(boosts.join(" + ")) : "—"}</div>
+        <div class="ob-picks">${pick(1)}${pick(2)}${pick(3)}</div>
+        <div class="ob-boosts">${chips.length ? chips.join("") : `<span class="ob-chip none">No boost</span>`}</div>
         <div class="b-time">${fmtDMYTime(b.updated_at)}</div>
       </div>`;
-    }).join("");
+    }).join("") + `</div>`;
 }
 
 /* ===== V3.3 BackOffice: Lottery Bet report (last 10 played rounds) ===== */
