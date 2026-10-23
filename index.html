@@ -1129,7 +1129,7 @@
   .result-fab-new { position: absolute; top: -9px; right: -6px; font-style: normal; font-family: var(--font-body); font-size: 10px; font-weight: 800;
     background: #e53935; color: #fff; border: 2px solid #fff; border-radius: 999px; padding: 1px 6px; letter-spacing: .5px; }
   .result-window { z-index: 81; width: min(360px, 94vw); }
-  .result-win-head { background: linear-gradient(180deg, #24418f, var(--navy)); color: var(--gold); }
+  .bet-win-head.result-win-head { background: linear-gradient(180deg, #24418f, var(--navy)); color: var(--gold); }
   .rs-banner { border-radius: 12px; padding: 12px 14px; text-align: center; margin-bottom: 10px; }
   .rs-banner.win  { background: linear-gradient(180deg, #e3fbe9, #c3f0d2); border: 2px solid var(--green); color: var(--green-deep, #13804a); }
   .rs-banner.lose { background: #f3f1ec; border: 2px solid #d8d3c6; color: #6f6a5f; }
@@ -3265,7 +3265,8 @@ function openResultWindow() {
   if (!State.resultPos) {
     const w = Math.min(360, window.innerWidth * 0.94);
     const shift = State.betWindowOpen ? Math.min(380, window.innerWidth * 0.94) + 16 : 0;
-    State.resultPos = { left: Math.max(8, window.innerWidth - w - 22 - shift), top: 90 };
+    const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 90;
+    State.resultPos = { left: Math.max(8, window.innerWidth - w - 22 - shift), top: Math.round(headerH + 12) };
   }
   placeResultWindow();
   renderResultUI();
