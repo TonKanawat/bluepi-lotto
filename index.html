@@ -1113,6 +1113,48 @@
   }
   .bet-fab:hover { transform: translateY(-2px); }
   .bet-fab-dot { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--green); border: 2px solid white; }
+  /* "Your last bet result!" button (sits above the Lottery Bet button) + its draggable window */
+  .result-fab {
+    position: fixed; right: 22px; bottom: 90px; z-index: 70;
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    border-radius: 999px; border: 3px solid var(--gold); cursor: pointer;
+    background: linear-gradient(180deg, #24418f, var(--navy)); color: var(--gold);
+    font-family: var(--font-display); letter-spacing: .8px; font-size: 12px;
+    box-shadow: 0 8px 20px rgba(10,31,110,.35); transition: transform .15s;
+  }
+  .result-fab:hover { transform: translateY(-2px); }
+  .result-fab.solo { bottom: 22px; }
+  .result-fab.has-new { animation: resultPulse 1.6s ease-in-out infinite; }
+  @keyframes resultPulse { 0%, 100% { box-shadow: 0 8px 20px rgba(10,31,110,.35); } 50% { box-shadow: 0 8px 30px rgba(246,184,0,.85); } }
+  .result-fab-new { position: absolute; top: -9px; right: -6px; font-style: normal; font-family: var(--font-body); font-size: 10px; font-weight: 800;
+    background: #e53935; color: #fff; border: 2px solid #fff; border-radius: 999px; padding: 1px 6px; letter-spacing: .5px; }
+  .result-window { z-index: 81; width: min(360px, 94vw); }
+  .result-win-head { background: linear-gradient(180deg, #24418f, var(--navy)); color: var(--gold); }
+  .rs-banner { border-radius: 12px; padding: 12px 14px; text-align: center; margin-bottom: 10px; }
+  .rs-banner.win  { background: linear-gradient(180deg, #e3fbe9, #c3f0d2); border: 2px solid var(--green); color: var(--green-deep, #13804a); }
+  .rs-banner.lose { background: #f3f1ec; border: 2px solid #d8d3c6; color: #6f6a5f; }
+  .rs-banner .rs-big { font-family: var(--font-display); font-size: 22px; letter-spacing: 1px; line-height: 1.15; }
+  .rs-banner .rs-sub { font-size: 12px; margin-top: 2px; }
+  .rs-pick { display: grid; grid-template-columns: 22px 34px 1fr auto; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 10px;
+    border: 1.5px solid #f0d27a; background: #fffaf0; margin-bottom: 6px; }
+  .rs-pick.hit { border-color: var(--green); background: #effcf3; }
+  .rs-pick .rs-no { width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 11px; font-weight: 800; display: grid; place-items: center; }
+  .rs-pick img, .rs-pick .rs-noimg { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--line); }
+  .rs-pick .rs-name { font-weight: 700; font-size: 13px; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rs-pick .rs-what { font-size: 11px; color: var(--muted); }
+  .rs-pick.hit .rs-what { color: #13804a; font-weight: 700; }
+  .rs-pick .rs-sp { display: inline-block; font-size: 10px; font-weight: 800; color: #ad1457; background: #ffe3ee; border-radius: 6px; padding: 0 5px; margin-left: 4px; }
+  .rs-pick .rs-pts { font-family: var(--font-display); font-size: 14px; color: #13804a; text-align: right; white-space: nowrap; }
+  .rs-pick .rs-pts.zero { color: #b5ae9f; }
+  .rs-pick .rs-calc { display: block; font-family: var(--font-body); font-size: 10px; color: var(--muted); }
+  .rs-line { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 2px; border-top: 1px dashed #ead9a8; }
+  .rs-line b { font-family: var(--font-display); font-size: 15px; }
+  .rs-prizes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 4px; }
+  .rs-prizes div { text-align: center; font-size: 9px; color: var(--muted); }
+  .rs-prizes img, .rs-prizes .rs-noimg { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; display: block; margin: 0 auto 2px; background: var(--line); }
+  .rs-prizes .mine img { box-shadow: 0 0 0 2px var(--green); }
+  .rs-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .rs-actions .btn { flex: 1; justify-content: center; }
   @keyframes fabPulse { 0%, 100% { box-shadow: 0 10px 24px rgba(163,20,25,0.4); } 50% { box-shadow: 0 10px 34px rgba(246,184,0,0.75); } }
   .bet-window {
     position: fixed; z-index: 80; width: min(380px, 94vw); max-height: min(78vh, 680px);
@@ -1391,6 +1433,14 @@
 </div>
 
 <!-- V3: Lottery Bet floating button + draggable mini-window (Home page, logged-in players) -->
+<button class="result-fab hidden" id="result-fab" title="See the result of your latest Lottery Bet">🏆 <span>Your last bet result!</span><i class="result-fab-new hidden" id="result-fab-new">NEW</i></button>
+<div class="bet-window result-window hidden" id="result-window" role="dialog" aria-label="Your last bet result">
+  <div class="bet-win-head result-win-head" id="result-win-head">
+    <span>🏆 YOUR LAST BET RESULT</span>
+    <button class="bet-win-min" id="result-win-min" title="Minimize">–</button>
+  </div>
+  <div class="bet-win-body" id="result-win-body"></div>
+</div>
 <button class="bet-fab hidden" id="bet-fab" title="Open Lottery Bet">🎟️ <span>Lottery Bet</span><i class="bet-fab-dot hidden" id="bet-fab-dot"></i></button>
 <div class="bet-window hidden" id="bet-window" role="dialog" aria-label="Lottery Bet">
   <div class="bet-win-head" id="bet-win-head">
@@ -1491,6 +1541,8 @@ const State = {
   betDraft: null,         // in-progress edits in the Lottery Bet window
   betWindowOpen: false,
   betPos: null,           // { left, top } of the draggable window
+  resultWindowOpen: false,
+  resultPos: null,        // { left, top } of the draggable "Your last bet result!" window
 };
 
 const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -3183,6 +3235,127 @@ function renderBetUI() {
   win.classList.toggle("hidden", !visible || !State.betWindowOpen);
   $("#bet-fab-dot").classList.toggle("hidden", !myOpenBet());
   if (visible && State.betWindowOpen) renderBetWindow();
+  renderResultUI();
+}
+
+/* ===== "Your last bet result!" — floating button above Lottery Bet + draggable mini window ===== */
+const _seenKey = () => "bluepi_seen_result_" + (State.me ? State.me.picture_id : "");
+function _seenResultId() { try { return localStorage.getItem(_seenKey()); } catch (e) { return null; } }
+function _markResultSeen(id) { try { localStorage.setItem(_seenKey(), id); } catch (e) {} }
+
+function renderResultUI() {
+  const fab = $("#result-fab"), win = $("#result-window");
+  if (!fab || !win) return;
+  const last = State.isUser ? myLastSettledBet() : null;
+  const visible = !!last && currentView === "home";
+  fab.classList.toggle("hidden", !visible || State.resultWindowOpen);
+  win.classList.toggle("hidden", !visible || !State.resultWindowOpen);
+  // sit directly above the Lottery Bet button; drop to the corner when that button is hidden (its window is open)
+  fab.classList.toggle("solo", State.betWindowOpen);
+  const isNew = !!last && _seenResultId() !== last.id;
+  fab.classList.toggle("has-new", isNew);
+  $("#result-fab-new").classList.toggle("hidden", !isNew);
+  if (visible && State.resultWindowOpen) { renderResultWindow(last); _markResultSeen(last.id); }
+}
+
+function openResultWindow() {
+  State.resultWindowOpen = true;
+  const win = $("#result-window");
+  win.classList.remove("hidden");
+  if (!State.resultPos) {
+    const w = Math.min(360, window.innerWidth * 0.94);
+    const shift = State.betWindowOpen ? Math.min(380, window.innerWidth * 0.94) + 16 : 0;
+    State.resultPos = { left: Math.max(8, window.innerWidth - w - 22 - shift), top: 90 };
+  }
+  placeResultWindow();
+  renderResultUI();
+}
+function minimizeResultWindow() { State.resultWindowOpen = false; renderResultUI(); }
+function placeResultWindow() {
+  const win = $("#result-window");
+  const r = win.getBoundingClientRect();
+  const w = r.width || 360, h = r.height || 400;
+  const left = Math.min(Math.max(4, State.resultPos.left), Math.max(4, window.innerWidth - w - 4));
+  const top = Math.min(Math.max(4, State.resultPos.top), Math.max(4, window.innerHeight - Math.min(h, 120) - 4));
+  State.resultPos = { left, top };
+  win.style.left = left + "px"; win.style.top = top + "px";
+}
+(function wireResultDrag() {
+  const head = $("#result-win-head");
+  let start = null;
+  head.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("#result-win-min")) return;
+    start = { x: e.clientX, y: e.clientY, left: State.resultPos.left, top: State.resultPos.top };
+    head.setPointerCapture(e.pointerId);
+    head.classList.add("dragging");
+  });
+  head.addEventListener("pointermove", (e) => {
+    if (!start) return;
+    State.resultPos = { left: start.left + (e.clientX - start.x), top: start.top + (e.clientY - start.y) };
+    placeResultWindow();
+  });
+  const end = () => { start = null; head.classList.remove("dragging"); };
+  head.addEventListener("pointerup", end);
+  head.addEventListener("pointercancel", end);
+  window.addEventListener("resize", () => { if (State.resultWindowOpen && State.resultPos) placeResultWindow(); });
+})();
+$("#result-fab").onclick = openResultWindow;
+$("#result-win-min").onclick = minimizeResultWindow;
+
+function renderResultWindow(b) {
+  const body = $("#result-win-body");
+  const shown = State.rounds.slice(0, HISTORY_LIMIT);
+  const idx = shown.findIndex(r => r.id === b.round_id);
+  const round = State.rounds.find(r => r.id === b.round_id) || null;
+  const when = round ? fmtDMYTime(round.timestamp) : (b.updated_at ? fmtDMYTime(b.updated_at) : "");
+  const roundTxt = (idx >= 0 ? `Round ${shown.length - idx} · ` : "") + when;
+  const won = (b.winnings || 0) > 0;
+  const winners = round ? (round.winners || []) : [];
+  const used = (slot, key) => {
+    if (!key) return null;
+    if (b.boost_mults && b.boost_mults[slot] != null) return Number(b.boost_mults[slot]);
+    const it = shopItem(key); return it ? Number(it.multiplier) : null;
+  };
+  const tMult = used("turbo", b.turbo_key);
+  const myPicks = [b.pick1, b.pick2, b.pick3];
+  const pickRow = (n) => {
+    const id = b["pick" + n], url = picUrl(id);
+    const rank = winners.findIndex(w => w.pictureId === id) + 1;
+    const part = (b.breakdown || []).find(x => Number(x.place) === n);
+    const sMult = used("s" + n, betSpecial(b, n));
+    let calc = "";
+    if (part) {
+      const parts = [];
+      if (tMult) parts.push(multText(tMult));
+      if (sMult) parts.push("★" + multText(sMult));
+      calc = parts.length ? `${Number(part.base).toLocaleString()} × (${parts.join(" + ")})` : `${Number(part.base).toLocaleString()} pts`;
+    }
+    return `<div class="rs-pick${rank ? " hit" : ""}">
+      <span class="rs-no">${n}</span>
+      ${url ? `<img src="${escapeHtml(url)}" alt="">` : `<span class="rs-noimg"></span>`}
+      <div style="min-width:0">
+        <div class="rs-name">${escapeHtml(picName(id))}${sMult ? `<span class="rs-sp">★${escapeHtml(multText(sMult))}</span>` : ""}</div>
+        <div class="rs-what">${rank ? `✓ ${REPORT_PRIZE_SHORT[rank - 1]}` : "Not drawn"}</div>
+      </div>
+      <div class="rs-pts${part ? "" : " zero"}">${part ? `+${Number(part.points).toLocaleString()}` : "0"}${calc ? `<span class="rs-calc">${escapeHtml(calc)}</span>` : ""}</div>
+    </div>`;
+  };
+  body.innerHTML = `
+    <div class="rs-banner ${won ? "win" : "lose"}">
+      <div class="rs-big">${won ? `🎉 YOU WON +${Number(b.winnings).toLocaleString()} PTS` : "😢 NOT THIS TIME"}</div>
+      <div class="rs-sub">${escapeHtml(roundTxt)}${won ? " · added to your points" : " · none of your picks were drawn"}</div>
+    </div>
+    ${pickRow(1)}${pickRow(2)}${pickRow(3)}
+    <div class="rs-line"><span>Turbo used</span><span>${b.turbo_key ? `⚡ Turbo ${escapeHtml(multText(tMult))}` : "—"}</span></div>
+    <div class="rs-line"><span>Total won</span><b style="color:${won ? "#13804a" : "#9c9586"}">${Number(b.winnings || 0).toLocaleString()} pts</b></div>
+    ${winners.length ? `<div class="rs-line" style="border-bottom:0"><span>This round's prizes</span><span></span></div>
+      <div class="rs-prizes">${winners.map((w, i) => {
+        const u = picUrl(w.pictureId) || w.imageUrl || "";
+        return `<div class="${myPicks.includes(w.pictureId) ? "mine" : ""}" title="${escapeHtml(REPORT_PRIZE_SHORT[i] || "")}: ${escapeHtml(w.name || "")}">
+          ${u ? `<img src="${escapeHtml(u)}" alt="">` : `<span class="rs-noimg"></span>`}${["1st", "2nd", "2nd", "3rd", "3rd", "3rd"][i] || ""}</div>`;
+      }).join("")}</div>` : ""}
+    <div class="rs-actions"><button class="btn btn-primary" id="rs-bet-next">🎟️ Bet for the next round</button></div>`;
+  body.querySelector("#rs-bet-next").onclick = () => { openBetWindow(); };
 }
 
 function openBetWindow() {
